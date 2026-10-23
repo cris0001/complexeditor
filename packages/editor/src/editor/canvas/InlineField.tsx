@@ -9,6 +9,10 @@ import { FLOW_TEXT, MARKDOWN_SHORTCUTS } from '../actions';
 import { fromProseMirror, sameInline, toProseMirror, type PMNode } from '../tiptap/convert';
 import { inlineExtensions } from '../tiptap/extensions';
 import { FormatToolbar } from './FormatToolbar';
+import { CLIPBOARD_MIME, parseClipboardBlocks } from '../clipboard';
+import { htmlToBlocks, isMultiBlock, textToBlocks } from '../paste';
+import { insertFiles } from '../media/insertFiles';
+import { findBlock } from '../state/operations';
 
 const PLACEHOLDERS: Record<string, EditorMessageKey> = {
   paragraph: 'placeholderParagraph',
@@ -26,7 +30,8 @@ interface InlineFieldProps {
  * like the published page. Only one Tiptap instance exists at a time.
  */
 export function InlineField({ block, ctx }: InlineFieldProps) {
-  const { store, actions, registry, permissions, t } = useEditor();
+  const editorCtx = useEditor();
+  const { store, actions, registry, permissions, t } = editorCtx;
   const active = useEditorState((s) => s.editing === block.id);
   const focusRequest = useEditorState((s) => (s.focusRequest?.blockId === block.id ? s.focusRequest : null));
   const host = useRef<HTMLSpanElement>(null);
@@ -51,10 +56,11 @@ export function InlineField({ block, ctx }: InlineFieldProps) {
       content: toProseMirror(blockRef.current.content),
       injectCSS: false,
       editorProps: {
-        attributes: (): Record<string, string> => ({
+        // Called with the editor state (also during construction, before `instance` exists).
+        attributes: (state): Record<string, string> => ({
           class: 'ce-ed-inline ce-ed-inline--active',
           'data-placeholder': placeholder,
-          ...(instance.isEmpty ? { 'data-empty': '' } : {}),
+          ...(state.doc.content.size === 0 ? { 'data-empty': '' } : {}),
           spellcheck: 'true',
         }),
         handleKeyDown: (view, event) => {
@@ -100,6 +106,29 @@ export function InlineField({ block, ctx }: InlineFieldProps) {
           }
           return false;
         },
+        handlePaste: (_view, event) => {
+          const data = event.clipboardData;
+          if (!data) return false;
+          const location = findBlock(store.getState().history.present, blockRef.current.id);
+          if (!location) return false;
+          const empty = instance.isEmpty && blockRef.current.type === 'paragraph';
+          const target = { parentId: location.parent?.id ?? null, index: location.index + (empty ? 0 : 1) };
+          const files = Array.from(data.files);
+          if (files.length && editorCtx.props.onUpload) {
+            insertFiles(editorCtx, files, target);
+            if (empty) actions.remove([blockRef.current.id]);
+            return true;
+          }
+          const html = data.getData('text/html');
+          const ours = parseClipboardBlocks({ json: data.getData(CLIPBOARD_MIME), html }, registry);
+          const blocks =
+            ours ?? (html ? htmlToBlocks(html, registry) : textToBlocks(data.getData('text/plain')));
+          // Plain inline text is pasted by Tiptap itself (with our marks only).
+          if (!ours && !isMultiBlock(blocks)) return false;
+          if (empty) actions.remove([blockRef.current.id]);
+          actions.insertBlocksAt(blocks, target);
+          return true;
+        },
         handleTextInput: (view, from, _to, text) => {
           if (text !== ' ' || blockRef.current.type !== 'paragraph') return false;
           const prefix = view.state.doc.textBetween(0, from);
@@ -113,7 +142,11 @@ export function InlineField({ block, ctx }: InlineFieldProps) {
       onUpdate: ({ editor: e }) => {
         const content = fromProseMirror(e.getJSON() as PMNode);
         if (sameInline(content, blockRef.current.content)) return;
-        actions.update(blockRef.current.id, (b) => ({ ...b, content }), `text:${blockRef.current.id}`);
+        actions.update(
+          blockRef.current.id,
+          (b) => ({ ...b, content, untranslated: undefined }),
+          `text:${blockRef.current.id}`,
+        );
         // Markdown shortcut for a separator: "---" in an otherwise empty paragraph.
         if (blockRef.current.type === 'paragraph' && e.getText() === '---' && registry.has('separator')) {
           const id = blockRef.current.id;
@@ -187,6 +220,8 @@ export function InlineField({ block, ctx }: InlineFieldProps) {
       data-empty={block.content?.length ? undefined : ''}
       onMouseDown={(event) => {
         if (event.button !== 0) return;
+        // The static span is replaced by the editor right away; the editor places the caret itself.
+        event.preventDefault();
         clickPoint.current = { x: event.clientX, y: event.clientY };
         store.set({ editing: block.id, selection: block.id });
       }}

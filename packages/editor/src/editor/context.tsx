@@ -1,4 +1,4 @@
-import { createContext, useContext, useMemo } from 'react';
+import { createContext, useContext, useMemo, useRef } from 'react';
 import type { ContentDocument } from '../schema/types';
 import type { AnyBlockDefinition, Registry } from '../core/types';
 import { format } from '../i18n/renderer-messages';
@@ -6,10 +6,12 @@ import type { EditorMessageKey, EditorMessages } from '../i18n/editor-messages';
 import { useStoreSelector, type EditorState, type EditorStore } from './state/store';
 import type { EditorPermissions, EditorProps } from './types';
 import { createActions, type Actions } from './actions';
+import { createUploader, type Uploader } from './media/uploads';
 
 export interface EditorContextValue {
   store: EditorStore;
   actions: Actions;
+  uploader: Uploader;
   registry: Registry;
   props: EditorProps;
   permissions: Required<Pick<EditorPermissions, 'advanced' | 'customClasses' | 'slotClasses' | 'structure'>> &
@@ -56,6 +58,21 @@ export function useCreateContextValue(
   messages: EditorMessages,
 ): EditorContextValue {
   const locale = props.locale ?? 'en';
+  // The uploader outlives prop changes (running uploads keep their callbacks and retry state).
+  const latest = useRef({ props, messages });
+  latest.current = { props, messages };
+  const uploader = useMemo(
+    () =>
+      createUploader(
+        store,
+        () => latest.current.props,
+        () => ({
+          tooLarge: latest.current.messages.fileTooLarge,
+          wrongType: latest.current.messages.fileWrongType,
+        }),
+      ),
+    [store],
+  );
   return useMemo(() => {
     const label = createLabel(locale);
     const allowed = props.permissions?.blocks;
@@ -65,6 +82,7 @@ export function useCreateContextValue(
     return {
       store,
       actions: createActions(store, registry),
+      uploader,
       registry,
       props,
       permissions: {
@@ -84,7 +102,7 @@ export function useCreateContextValue(
       },
       locale,
     };
-  }, [store, registry, props, messages, locale]);
+  }, [store, registry, props, messages, locale, uploader]);
 }
 
 /** Whether `block` (or a child type) may be inserted by the current user. */

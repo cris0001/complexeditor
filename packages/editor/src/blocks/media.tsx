@@ -821,7 +821,7 @@ export const hero = defineBlock({
             )}
           </div>
         )}
-        <div className={slot('inner', 'ce-flow')}>{children}</div>
+        <div className={cx(slot('inner'), 'ce-flow')}>{children}</div>
         {(p.parallax || media?.type === 'video') &&
           island(ctx, 'parallax', { parallax: p.parallax ?? false })}
       </section>

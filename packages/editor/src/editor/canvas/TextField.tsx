@@ -32,7 +32,7 @@ export function TextField({ block, prop }: { block: Block; prop: string }) {
         const text = (event.currentTarget.textContent ?? '').replace(/\n/g, ' ');
         actions.update(
           block.id,
-          (b) => setBlockField(b, prop, text || undefined),
+          (b) => ({ ...setBlockField(b, prop, text || undefined), untranslated: undefined }),
           `prop:${block.id}:${prop}`,
         );
       }}

@@ -21,7 +21,7 @@ const CATEGORY_OUTLINE: Record<BlockCategory, OutlineKind> = {
  * fields and data attributes on each block root (no wrapper elements, so the CSS stays 1:1).
  */
 export function useEditorRenderContext(doc: ContentDocument): RenderContext {
-  const { props, registry } = useEditor();
+  const { props, registry, blockName } = useEditor();
   const device = useEditorState((s) => s.device);
   return useMemo(() => {
     const base = createRenderContext(doc, {
@@ -38,12 +38,22 @@ export function useEditorRenderContext(doc: ContentDocument): RenderContext {
       ...base,
       mode: 'editor',
       previewDevice: device,
-      decorateRoot: (block, def, root, depth) => ({
-        ...root,
-        'data-ce-id': block.id,
-        'data-ce-outline': def.outline ?? CATEGORY_OUTLINE[def.category],
-        style: { ...root.style, '--ce-ed-depth': String(depth) },
-      }),
+      decorateRoot: (block, def, root, depth) => {
+        // Hidden-on-device blocks stay selectable in the editor (dimmed via CSS instead).
+        const hidden = (['mobile', 'tablet', 'desktop'] as const).filter((d) => block.style?.hidden?.[d]);
+        return {
+          ...root,
+          className: hidden.length
+            ? root.className.replace(/\s?ce-hide-(mobile|tablet|desktop)/g, '')
+            : root.className,
+          'data-ce-id': block.id,
+          'data-ce-outline': def.outline ?? CATEGORY_OUTLINE[def.category],
+          'data-ce-hidden': hidden.length ? hidden.join(' ') : undefined,
+          'data-ce-untranslated': block.untranslated ? '' : undefined,
+          'data-ce-type-label': blockName(block.type),
+          style: { ...root.style, '--ce-ed-depth': String(depth) },
+        };
+      },
       renderBlocks(blocks, parent) {
         if (!blocks.length && (parent === null || registry.get(parent.type)?.container)) {
           return <EmptyZone parentId={parent?.id ?? null} />;
@@ -62,6 +72,7 @@ export function useEditorRenderContext(doc: ContentDocument): RenderContext {
     doc,
     device,
     registry,
+    blockName,
     props.theme,
     props.classNames,
     props.mergeClasses,

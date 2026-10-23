@@ -1,2 +1,47 @@
-/* complexeditor editor UI styles. Scoped to .ce-editor so nothing leaks into the page. */
+/*
+ * complexeditor editor UI styles. Everything is scoped to `.ce-editor` (and `.ce-editor-portal`
+ * for popovers rendered into <body>), so nothing leaks into the host page or changes how the
+ * previewed post looks: block outlines use `outline`, which never affects layout.
+ */
 @layer ce.editor;
+
+@layer ce.editor {
+  .ce-editor,
+  .ce-editor-portal {
+    /* Outline colors per category (spec §10); override these to re-theme the editor. */
+    --ce-outline-section: #2f6fed;
+    --ce-outline-layout: #8b5cf6;
+    --ce-outline-media: #16a34a;
+    --ce-outline-embed: #dc2626;
+    --ce-outline-interactive: #ea580c;
+    --ce-outline-highlight: #ca8a04;
+    --ce-outline-global: #db2777;
+    --ce-outline-text: #64748b;
+
+    --ce-ed-accent: #2f6fed;
+    --ce-ed-accent-contrast: #fff;
+    --ce-ed-bg: #ffffff;
+    --ce-ed-panel: #f8f9fb;
+    --ce-ed-canvas: #eceef2;
+    --ce-ed-border: #dfe2e8;
+    --ce-ed-text: #1c1f26;
+    --ce-ed-muted: #697080;
+    --ce-ed-danger: #d92d20;
+    --ce-ed-warning: #b54708;
+    --ce-ed-radius: 8px;
+    --ce-ed-shadow: 0 8px 24px rgb(16 24 40 / 0.14), 0 2px 6px rgb(16 24 40 / 0.08);
+    --ce-ed-font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .ce-editor:not([data-theme='light']),
+    .ce-editor-portal {
+      --ce-ed-bg: #16181d;
+      --ce-ed-panel: #1c1f26;
+      --ce-ed-canvas: #0f1115;
+      --ce-ed-border: #2c313b;
+      --ce-ed-text: #e7e9ee;
+      --ce-ed-muted: #9aa1b0;
+    }
+  }
+}

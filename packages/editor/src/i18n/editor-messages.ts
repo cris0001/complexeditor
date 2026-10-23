@@ -193,6 +193,13 @@ export const editorMessages = {
     tailwindLoading: 'Loading Tailwind…',
     unknownClass: 'Unknown class',
     arbitraryNotAllowed: 'Arbitrary values are not allowed here',
+    fullScreenHeight: '100% of screen',
+    video: 'Video',
+    poster: 'Poster image',
+    videoFileHint: 'Video file (mp4, webm)',
+    fileTooLarge: 'The file is too large',
+    fileWrongType: 'This file type is not allowed',
+    mediaSettings: 'File details',
   },
   pl: {
     undo: 'Cofnij',
@@ -380,6 +387,13 @@ export const editorMessages = {
     tailwindLoading: 'Wczytywanie Tailwinda…',
     unknownClass: 'Nieznana klasa',
     arbitraryNotAllowed: 'Wartości arbitralne nie są tu dozwolone',
+    fullScreenHeight: '100% ekranu',
+    video: 'Wideo',
+    poster: 'Obraz zastępczy (poster)',
+    videoFileHint: 'Plik wideo (mp4, webm)',
+    fileTooLarge: 'Plik jest za duży',
+    fileWrongType: 'Ten typ pliku jest niedozwolony',
+    mediaSettings: 'Szczegóły pliku',
   },
 } satisfies { en: Record<string, string>; pl: Record<string, string> };
 

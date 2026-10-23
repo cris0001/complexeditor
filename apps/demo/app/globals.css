@@ -1,0 +1,9 @@
+/* complexeditor styles go into Tailwind's components layer, so utilities always win. */
+@import 'tailwindcss';
+@import 'complexeditor/styles.css' layer(components);
+@import 'complexeditor/editor.css' layer(components);
+
+@theme {
+  --font-sans: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --color-brand-500: #3b5bdb;
+}

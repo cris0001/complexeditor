@@ -56,13 +56,17 @@ export function readingTime(
   return { words, minutes: words === 0 ? 0 : Math.max(1, Math.ceil(words / wordsPerMinute)) };
 }
 
-/** Turns text into an anchor id: lowercase ASCII, diacritics removed (also Polish ł). */
+// Combining marks left after NFKD normalization (U+0300–U+036F).
+const COMBINING_MARKS = new RegExp(`[${String.fromCharCode(0x300)}-${String.fromCharCode(0x36f)}]`, 'g');
+
+/** Lowercase text without diacritics (also Polish ł), for search and slugs. */
+export function foldDiacritics(text: string): string {
+  return text.normalize('NFKD').replace(COMBINING_MARKS, '').replace(/[łŁ]/g, 'l').toLowerCase();
+}
+
+/** Turns text into an anchor id: lowercase ASCII, diacritics removed. */
 export function slugify(text: string): string {
-  return text
-    .normalize('NFKD')
-    .replace(/[̀-ͯ]/g, '')
-    .replace(/[łŁ]/g, 'l')
-    .toLowerCase()
+  return foldDiacritics(text)
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 }

@@ -1,8 +1,9 @@
-import type { ReactNode } from 'react';
+import type { ComponentType, ReactNode } from 'react';
 import type { Block, ContentDocument, LocalizedString, MarkType } from '../schema/types';
 import type {
   ClassNamesConfig,
   CodeHighlighter,
+  InspectorField,
   MergeClasses,
   Registry,
   RendererComponents,
@@ -127,6 +128,8 @@ export interface TranslationConfig {
   source?: { locale: string; document: ContentDocument; hash?: string };
   /** Hash of the source when this translation was last synced (for the outdated warning). */
   translatedFromHash?: string;
+  /** Called after "Copy from …" with the source hash; store it as `translatedFromHash`. */
+  onCopyFromSource?: (sourceHash: string) => void;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -190,6 +193,17 @@ export interface EditorProps extends MediaCallbacks, ReuseCallbacks {
   className?: string;
   /** Extra content for the top toolbar (e.g. a "Publish" button). */
   toolbar?: ReactNode;
+  /** Custom inspector field types (or replacements of built-in ones), keyed by `field.type`. */
+  fields?: Record<string, ComponentType<InspectorFieldProps>>;
+}
+
+/** Props of an inspector field component (see `fields`). */
+export interface InspectorFieldProps {
+  field: InspectorField;
+  value: never;
+  onChange: (value: unknown) => void;
+  block: Block;
+  label: string;
 }
 
 /** Options for Tailwind live mode, provided by `complexeditor/tailwind`. */

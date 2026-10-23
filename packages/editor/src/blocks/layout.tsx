@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { toResponsiveObject, type Responsive } from '../schema/responsive';
 import type { Block } from '../schema/types';
+import { cx } from '../core/classes';
 import { defineBlock } from '../core/define-block';
 import { addResponsive, spaceToCss, type StyleAttributes } from '../core/style';
 import { cssLength, responsive, responsiveSpace, t, verticalAlignSchema } from './shared';
@@ -40,7 +41,7 @@ export const section = defineBlock({
     const Tag = p.tag ?? 'section';
     return (
       <Tag {...root}>
-        <div className={slot('inner', 'ce-flow')}>{children}</div>
+        <div className={cx(slot('inner'), 'ce-flow')}>{children}</div>
       </Tag>
     );
   },

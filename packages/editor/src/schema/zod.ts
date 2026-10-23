@@ -168,6 +168,7 @@ export const blockSchema: z.ZodType<Block> = z.lazy(() =>
     classes: blockClassesSchema.optional(),
     content: inlineContentSchema.optional(),
     children: z.array(blockSchema).optional(),
+    untranslated: z.boolean().optional(),
   }),
 );
 

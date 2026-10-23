@@ -16,11 +16,22 @@ import {
 export type Device = 'mobile' | 'tablet' | 'desktop';
 export type SaveStatus = 'idle' | 'dirty' | 'saving' | 'saved' | 'error';
 
+export interface UploadTask {
+  id: string;
+  name: string;
+  /** 0–1. */
+  progress: number;
+  status: 'uploading' | 'error' | 'done';
+  error?: string;
+}
+
 /** Modal dialogs of the editor. */
 export type EditorDialog =
   | { kind: 'saveStyle'; blockId: string }
   | { kind: 'saveGlobal'; blockId: string }
   | { kind: 'media'; mediaType: MediaType; multiple: boolean; onSelect: (items: MediaItem[]) => void }
+  | { kind: 'template'; templateId: string; locale: string }
+  | { kind: 'editGlobal'; globalId: string }
   | { kind: 'shortcuts' };
 
 /** Where the block picker (slash menu) inserts: replace an empty paragraph, inside a container, or after a block. */
@@ -49,6 +60,8 @@ export interface EditorState {
   /** Drag & drop in progress. */
   drag: DragState | null;
   dialog: EditorDialog | null;
+  /** Files being uploaded (shown in the upload tray). */
+  uploads: UploadTask[];
 }
 
 type Listener = () => void;
@@ -84,6 +97,7 @@ export function createEditorStore(doc: ContentDocument, initial: Partial<EditorS
     focusRequest: null,
     drag: null,
     dialog: null,
+    uploads: [],
     ...initial,
   };
   const listeners = new Set<Listener>();

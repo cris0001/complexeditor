@@ -93,6 +93,8 @@ export interface Block<TType extends string = string, TProps = Record<string, un
   classes?: BlockClasses;
   content?: InlineContent;
   children?: Block[];
+  /** Set by "Copy from …" until the text is translated (editor-only marker, ignored by the renderer). */
+  untranslated?: boolean;
 }
 
 export interface ContentDocument {
