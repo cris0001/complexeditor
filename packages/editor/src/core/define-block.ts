@@ -27,6 +27,6 @@ export function defineBlock<
 }
 
 /** Slot names of a block definition, for typing `classNames` configs. */
-export type SlotsOf<D> = D extends BlockDefinition<string, Record<string, unknown>, infer S> ? S : never;
+export type SlotsOf<D> = D extends { slots: readonly (infer S extends string)[] } ? S : never;
 /** Props type of a block definition. */
-export type PropsOf<D> = D extends BlockDefinition<string, infer P, string> ? P : never;
+export type PropsOf<D> = D extends { defaultProps: infer P } ? P : never;

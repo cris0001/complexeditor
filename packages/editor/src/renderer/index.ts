@@ -37,6 +37,7 @@ export {
   type StyleAttributes,
 } from '../core/style';
 export { cx, typeClass } from '../core/classes';
+export { defineClassNames, type TypedClassNames, type TypedBlockClassNames } from '../core/class-names';
 export type * from '../core/types';
 
 export * from '../blocks/index';

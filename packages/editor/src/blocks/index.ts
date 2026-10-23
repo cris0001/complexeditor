@@ -62,7 +62,7 @@ export { GALLERY_LAYOUTS, Picture } from './media';
 export { jsonLd } from './interactive';
 
 /** Every built-in block, in picker order. */
-export const builtinBlocks: readonly AnyBlockDefinition[] = [
+export const builtinBlocks = [
   // Text
   heading,
   paragraph,
@@ -102,7 +102,7 @@ export const builtinBlocks: readonly AnyBlockDefinition[] = [
   timeline,
   timelineItem,
   globalBlock,
-];
+] as const satisfies readonly AnyBlockDefinition[];
 
 /**
  * Registry with all built-in blocks plus `extra` (custom blocks, or replacements of built-ins

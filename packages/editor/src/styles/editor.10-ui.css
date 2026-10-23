@@ -992,3 +992,9 @@
     overflow: hidden;
   }
 }
+
+@layer ce.editor {
+  .ce-ed-inspector__styles {
+    padding: 0 0.85rem 0.5rem;
+  }
+}

@@ -187,6 +187,7 @@ export function Inspector() {
         <h2>{blockName(block.type)}</h2>
         {block.untranslated && <span className="ce-ed-badge ce-ed-badge--warning">!</span>}
       </header>
+      <SavedStylePicker block={block} />
       {permissions.advanced && (
         <div className="ce-ed-tabs" role="tablist">
           {(['basic', 'advanced'] as const).map((value) => (
@@ -229,6 +230,35 @@ export function Inspector() {
         )}
       </div>
     </aside>
+  );
+}
+
+/** Applies a saved style (settings, common style and classes; text stays) to the selected block. */
+function SavedStylePicker({ block }: { block: Block }) {
+  const { props, t, actions } = useEditor();
+  const styles = (props.savedStyles ?? []).filter((s) => s.blockType === block.type);
+  if (!styles.length) return null;
+  return (
+    <div className="ce-ed-inspector__styles">
+      <Select
+        value={undefined}
+        label={t('applyStyle')}
+        placeholder={t('applyStyle')}
+        options={styles.map((s) => ({ value: s.id, label: s.name }))}
+        onChange={(id) => {
+          const style = styles.find((s) => s.id === id);
+          if (!style) return;
+          actions.update(block.id, (b) => {
+            const next: Block = { ...b, props: { ...b.props, ...style.props } };
+            if (style.style) next.style = style.style;
+            else delete next.style;
+            if (style.classes) next.classes = style.classes;
+            else delete next.classes;
+            return next;
+          });
+        }}
+      />
+    </div>
   );
 }
 
