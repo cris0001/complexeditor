@@ -8,11 +8,13 @@ import {
   isResponsiveObject,
   migrate,
   parseDocument,
+  EMBED_SCRIPTS,
   parseEmbedUrl,
   readingTime,
   resolveResponsive,
   safeParseDocument,
   sanitizeUrl,
+  schemas,
   setResponsive,
   slugify,
   validateDocument,
@@ -92,13 +94,6 @@ describe('parseEmbedUrl', () => {
     ['https://youtu.be/dQw4w9WgXcQ', 'youtube', 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ'],
     ['https://www.youtube.com/shorts/abc_123', 'youtube', 'https://www.youtube-nocookie.com/embed/abc_123'],
     ['https://vimeo.com/76979871', 'vimeo', 'https://player.vimeo.com/video/76979871'],
-    ['https://x.com/user/status/123456', 'x', 'https://platform.twitter.com/embed/Tweet.html?id=123456'],
-    [
-      'https://twitter.com/user/status/123456',
-      'x',
-      'https://platform.twitter.com/embed/Tweet.html?id=123456',
-    ],
-    ['https://www.instagram.com/p/Cabc123/', 'instagram', 'https://www.instagram.com/p/Cabc123/embed'],
     [
       'https://open.spotify.com/track/4uLU6hMCjMI75M1A2tKUQC',
       'spotify',
@@ -115,10 +110,30 @@ describe('parseEmbedUrl', () => {
       'https://codepen.io/jane/embed/abcDEF?default-tab=result',
     ],
   ])('parses %s', (url, provider, embedUrl) => {
-    expect(parseEmbedUrl(url)).toMatchObject({ provider, embedUrl });
+    expect(parseEmbedUrl(url)).toMatchObject({ kind: 'iframe', provider, embedUrl });
   });
 
   it.each([
+    ['https://x.com/jack/status/20', 'x', 'https://twitter.com/jack/status/20', EMBED_SCRIPTS.x],
+    ['https://twitter.com/jack/status/20?s=1', 'x', 'https://twitter.com/jack/status/20', EMBED_SCRIPTS.x],
+    [
+      'https://www.instagram.com/reel/Cabc-123/?igsh=x',
+      'instagram',
+      'https://www.instagram.com/reel/Cabc-123/',
+      EMBED_SCRIPTS.instagram,
+    ],
+  ])('parses script embed %s', (url, provider, canonicalUrl, scriptUrl) => {
+    expect(parseEmbedUrl(url)).toEqual({
+      kind: 'script',
+      provider,
+      id: expect.any(String),
+      canonicalUrl,
+      scriptUrl,
+    });
+  });
+
+  it.each([
+    'https://x.com/jack"><script>/status/1',
     'https://evil.com/watch?v=x',
     'javascript:alert(1)',
     'https://youtube.com.evil.com/watch?v=x',
@@ -324,6 +339,29 @@ describe('migrations', () => {
       errors: [{ path: 'version' }],
     });
   });
+});
+
+describe('isSafeClassList', () => {
+  it.each([
+    'mt-12 md:mt-20',
+    "content-['x']",
+    'content-["→"] after:content-[\'a_b\']',
+    'grid-cols-[1fr_2fr] bg-[#fff]',
+    '[mask-type:luminance]',
+    '!font-bold -mt-2 w-1/2 hover:[&>*]:underline',
+  ])('accepts %s', (value) => expect(schemas.isSafeClassList(value)).toBe(true));
+
+  it.each([
+    'a" onclick="x',
+    "content-'x'",
+    "content-['x]",
+    'w-[10px',
+    'w-]10px[',
+    'bg-[red;color:blue]',
+    'x<script>',
+    '[a{b}]',
+    'a\\b',
+  ])('rejects %s', (value) => expect(schemas.isSafeClassList(value)).toBe(false));
 });
 
 describe('createId', () => {

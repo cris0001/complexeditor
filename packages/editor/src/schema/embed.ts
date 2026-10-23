@@ -9,13 +9,38 @@ export const EMBED_PROVIDERS = [
 ] as const;
 export type EmbedProvider = (typeof EMBED_PROVIDERS)[number];
 
-export interface EmbedInfo {
+interface EmbedBase {
   provider: EmbedProvider;
   /** Provider-specific id of the resource. */
   id: string;
+  /** Normalized public URL of the resource (used for "open on …" links and static previews). */
+  canonicalUrl: string;
+}
+
+/** Providers that work with a plain iframe. */
+export interface IframeEmbed extends EmbedBase {
+  kind: 'iframe';
   /** URL safe to use as an iframe `src`. */
   embedUrl: string;
 }
+
+/**
+ * Providers that require their own script (X, Instagram). The renderer builds the provider's
+ * documented markup from `canonicalUrl` and loads `scriptUrl` only after consent (click) or when
+ * the block enters the viewport. Script URLs are constants, never taken from document data.
+ */
+export interface ScriptEmbed extends EmbedBase {
+  kind: 'script';
+  provider: 'x' | 'instagram';
+  scriptUrl: string;
+}
+
+export type EmbedInfo = IframeEmbed | ScriptEmbed;
+
+export const EMBED_SCRIPTS = {
+  x: 'https://platform.twitter.com/widgets.js',
+  instagram: 'https://www.instagram.com/embed.js',
+} as const;
 
 type Matcher = (url: URL) => EmbedInfo | null;
 
@@ -31,26 +56,52 @@ const matchers: Record<EmbedProvider, Matcher> = {
       else id = /^\/(?:embed|shorts|live)\/([^/]+)/.exec(url.pathname)?.[1] ?? null;
     }
     if (!id || !ID.test(id)) return null;
-    return { provider: 'youtube', id, embedUrl: `https://www.youtube-nocookie.com/embed/${id}` };
+    return {
+      kind: 'iframe',
+      provider: 'youtube',
+      id,
+      canonicalUrl: `https://www.youtube.com/watch?v=${id}`,
+      embedUrl: `https://www.youtube-nocookie.com/embed/${id}`,
+    };
   },
   vimeo(url) {
     if (!hostIs(url, 'vimeo.com', 'player.vimeo.com')) return null;
     const id = /\/(\d+)(?:\/|$)/.exec(url.pathname)?.[1];
-    return id ? { provider: 'vimeo', id, embedUrl: `https://player.vimeo.com/video/${id}` } : null;
+    if (!id) return null;
+    return {
+      kind: 'iframe',
+      provider: 'vimeo',
+      id,
+      canonicalUrl: `https://vimeo.com/${id}`,
+      embedUrl: `https://player.vimeo.com/video/${id}`,
+    };
   },
   x(url) {
     if (!hostIs(url, 'x.com', 'twitter.com', 'mobile.twitter.com')) return null;
-    const id = /^\/[\w]+\/status\/(\d+)/.exec(url.pathname)?.[1];
-    return id
-      ? { provider: 'x', id, embedUrl: `https://platform.twitter.com/embed/Tweet.html?id=${id}` }
-      : null;
+    const match = /^\/(\w{1,15})\/status\/(\d{1,25})/.exec(url.pathname);
+    if (!match) return null;
+    const [, user, id] = match as unknown as [string, string, string];
+    return {
+      kind: 'script',
+      provider: 'x',
+      id,
+      // widgets.js only recognizes twitter.com permalinks.
+      canonicalUrl: `https://twitter.com/${user}/status/${id}`,
+      scriptUrl: EMBED_SCRIPTS.x,
+    };
   },
   instagram(url) {
     if (!hostIs(url, 'instagram.com')) return null;
-    const match = /^\/(p|reel|tv)\/([\w-]+)/.exec(url.pathname);
+    const match = /^\/(p|reel|tv)\/([\w-]{1,64})/.exec(url.pathname);
     if (!match) return null;
     const [, kind, id] = match as unknown as [string, string, string];
-    return { provider: 'instagram', id, embedUrl: `https://www.instagram.com/${kind}/${id}/embed` };
+    return {
+      kind: 'script',
+      provider: 'instagram',
+      id,
+      canonicalUrl: `https://www.instagram.com/${kind}/${id}/`,
+      scriptUrl: EMBED_SCRIPTS.instagram,
+    };
   },
   spotify(url) {
     if (!hostIs(url, 'open.spotify.com')) return null;
@@ -60,8 +111,10 @@ const matchers: Record<EmbedProvider, Matcher> = {
     if (!match) return null;
     const [, kind, id] = match as unknown as [string, string, string];
     return {
+      kind: 'iframe',
       provider: 'spotify',
       id: `${kind}/${id}`,
+      canonicalUrl: `https://open.spotify.com/${kind}/${id}`,
       embedUrl: `https://open.spotify.com/embed/${kind}/${id}`,
     };
   },
@@ -70,11 +123,8 @@ const matchers: Record<EmbedProvider, Matcher> = {
     if (!hostIs(url, 'google.com') || url.pathname !== '/maps/embed') return null;
     const pb = url.searchParams.get('pb');
     if (!pb) return null;
-    return {
-      provider: 'google-maps',
-      id: pb,
-      embedUrl: `https://www.google.com/maps/embed?pb=${encodeURIComponent(pb)}`,
-    };
+    const embedUrl = `https://www.google.com/maps/embed?pb=${encodeURIComponent(pb)}`;
+    return { kind: 'iframe', provider: 'google-maps', id: pb, canonicalUrl: embedUrl, embedUrl };
   },
   codepen(url) {
     if (!hostIs(url, 'codepen.io')) return null;
@@ -82,8 +132,10 @@ const matchers: Record<EmbedProvider, Matcher> = {
     if (!match) return null;
     const [, user, id] = match as unknown as [string, string, string];
     return {
+      kind: 'iframe',
       provider: 'codepen',
       id: `${user}/${id}`,
+      canonicalUrl: `https://codepen.io/${user}/pen/${id}`,
       embedUrl: `https://codepen.io/${user}/embed/${id}?default-tab=result`,
     };
   },
@@ -92,6 +144,7 @@ const matchers: Record<EmbedProvider, Matcher> = {
 /**
  * Parses a URL pasted by an editor into a safe embed descriptor.
  * Returns `null` for anything outside the provider allow-list.
+ * Blocks store only the original URL; renderers call this again instead of trusting stored embed data.
  */
 export function parseEmbedUrl(
   input: string,

@@ -16,11 +16,41 @@ export const cssLength = z
 
 export const safeUrl = z.string().refine((url) => isSafeUrl(url), 'Unsafe or invalid URL');
 
-/** One or more class names; no characters that could break out of the attribute or a selector. */
+const ALWAYS_FORBIDDEN = new Set(['<', '`', '{', '}', ';', '\\']);
+const QUOTES = new Set(['"', "'"]);
+
+/**
+ * Checks a whitespace-separated class list. `< \` { } ; \\` are never allowed. Quotes and `>` are
+ * allowed only inside balanced `[...]` (Tailwind arbitrary values and variants such as
+ * `content-['x']` or `[&>*]:underline`); quotes must be paired.
+ */
+export function isSafeClassList(value: string): boolean {
+  for (const token of value.split(/\s+/)) {
+    let depth = 0;
+    let quote: string | null = null;
+    for (const char of token) {
+      if (ALWAYS_FORBIDDEN.has(char)) return false;
+      if (quote) {
+        if (char === quote) quote = null;
+      } else if (QUOTES.has(char) || char === '>') {
+        if (depth === 0) return false;
+        if (char === '>') continue;
+        quote = char;
+      } else if (char === '[') depth++;
+      else if (char === ']') {
+        if (--depth < 0) return false;
+      }
+    }
+    if (depth !== 0 || quote) return false;
+  }
+  return true;
+}
+
+/** One or more class names; nothing that could break out of the attribute or a generated selector. */
 export const classList = z
   .string()
   .max(1000, 'Class list is too long (max 1000 characters)')
-  .regex(/^[^<>"'`{};\\]*$/, 'Class list contains forbidden characters');
+  .refine(isSafeClassList, 'Class list contains forbidden characters');
 
 export function responsive<T extends z.ZodType>(inner: T) {
   const shape = Object.fromEntries(BREAKPOINTS.map((bp) => [bp, inner.optional()])) as Record<
