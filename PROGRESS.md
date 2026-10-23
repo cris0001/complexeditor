@@ -4,15 +4,15 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done. Spec: `prompt-edyt
 
 ## Next step
 
-Stage 4 — all remaining blocks (`packages/editor/src/blocks/`, styles in `src/styles/renderer.*.css`).
-Done so far: paragraph, heading, section, columns, column, grid (engine proven, 86 tests).
+Stage 5 — editor (`packages/editor/src/editor/`, styles `src/styles/editor.*.css`). Stage 4 is done (all blocks + islands, 99 tests).
 
-1. Client islands infrastructure first: new entry `complexeditor/renderer/client` (tsup client config with `'use client'` banner), imported from server code through the package self-reference so the directive survives bundling (tsconfig `paths` + vitest alias → `src/renderer/client/index.ts`). Islands hydrate server-rendered markup (progressive enhancement). Scroll-animation island (IntersectionObserver → `ce-anim-ready` / `ce-in-view`), rendered only when the document uses `style.animation`.
-2. Text: quote, callout (collapsible via `<details>`), code (MIT highlighter, copy-button island, line numbers, filename), separator.
-3. List (`list` + `list-item` children, nesting, bullet/number/check/arrow/custom icon, responsive columns) and table (`table-row`/`table-cell` children with `content`; header row/column, stripes, per-column align, mobile scroll vs cards).
-4. Media: image (aspect, focal point, mobile art direction via `<picture>`, caption below/overlay, link, lightbox, hover, radius, shadow, width), gallery (one image list; grid/masonry/bento/slider/strip, responsive layout), before/after, lightbox island, hero, video (lite YouTube/Vimeo, file, background mode), embed (iframe + script providers per REPORT 20a), file download.
-5. Interactive: buttons, accordion/FAQ (+ JSON-LD), tabs (accordion on mobile), card, counter/stats, timeline.
-6. Kitchen-sink render test with every block + the no-inline-style test over it.
+1. `editor/state/`: pure document operations (insert, move, remove, duplicate, update props/style/classes/content, wrap, path helpers, id regeneration) + history (undo/redo with coalescing of typing) + selection; unit tests.
+2. `editor/tiptap/`: Tiptap (MIT extensions only) schema for inline marks; lossless conversion `InlineContent ⇄ ProseMirror JSON` with round-trip tests.
+3. Editor render context: same block render components; `renderBlocks` wraps blocks in `BlockFrame` (outline by category, hover label, selection, action bar, drop zones), `renderInline` = Tiptap field, `renderText` = plain contentEditable; art direction preview by device.
+4. UI: 3 panels (palette with search + structure tree, canvas with device widths / locale / outline toggle / undo-redo / autosave status, inspector Basic/Advanced with declarative field renderers and responsive device switcher + reset).
+5. DnD with dnd-kit (palette → canvas incl. specific column, reorder in canvas and tree, nesting rules via `canContain`).
+6. Slash menu, keyboard shortcuts, markdown shortcuts, paste from Word/Docs/web (HTML → blocks, sanitized), copy/paste blocks via clipboard JSON, autosave (`onChange`/`onSave` debounce).
+7. Editor CSS in `@layer ce.editor`, scoped to `.ce-editor`; outline colors as `--ce-outline-*`.
 
 Note for shell use: the Bash tool here strips `\\` inside heredocs; write files with the Write tool.
 
@@ -21,7 +21,7 @@ Note for shell use: the Bash tool here strips `\\` inside heredocs; write files 
 - [x] 1. Monorepo, tooling, CI (pnpm workspace, TS strict, ESLint, Prettier, Vitest, tsup, changesets, license check, GitHub Actions)
 - [x] 2. Data format: types, Zod, migrations, helpers, tests
 - [x] 3. Block engine: `defineBlock`, registry, theme, renderer + responsive styles, `@layer`, slots & `classes`
-- [~] 4. All blocks: renderers and styles
+- [x] 4. All blocks: renderers and styles
 - [ ] 5. Editor: state, history, canvas, panels, DnD, Tiptap + conversion, outlines, inspector, slash menu, shortcuts, paste
 - [ ] 6. Media: upload, link, media library
 - [ ] 7. i18n (UI + content), permissions, saved styles, global blocks, templates, variants
@@ -45,20 +45,20 @@ Note for shell use: the Bash tool here strips `\\` inside heredocs; write files 
 
 ### 5. Blocks
 
-- [x] Heading · [x] Paragraph · [ ] Quote · [ ] Callout · [ ] Code · [ ] Separator
+- [x] Heading · [x] Paragraph · [x] Quote · [x] Callout · [x] Code · [x] Separator
 - [x] Inline marks: bold, italic, underline, strike, link, highlight, palette color, code, sup, sub (renderer)
-- [ ] List · [ ] Table
+- [x] List · [x] Table
 - [x] Section · [x] Columns · [x] Grid · [x] Nesting depth limit
-- [ ] Image · [ ] Gallery (grid, masonry, bento, slider, scroll strip) · [ ] Before/after · [ ] Lightbox
-- [ ] Hero · [ ] Video · [ ] Embed · [ ] File download
-- [ ] Button(s) · [ ] Accordion/FAQ · [ ] Tabs · [ ] Card · [ ] Counter/stats · [ ] Timeline
+- [x] Image · [x] Gallery (grid, masonry, bento, slider, scroll strip) · [x] Before/after · [x] Lightbox
+- [x] Hero · [x] Video · [x] Embed · [x] File download
+- [x] Button(s) · [x] Accordion/FAQ · [x] Tabs · [x] Card · [x] Counter/stats · [x] Timeline
 
 ### 6. Common style panel
 
 Renderer side done; inspector UI comes in stage 5.
 
 - [x] Margin/padding scale · [x] Width · [x] Align · [x] Background · [x] Radius/border/shadow
-- [~] Scroll animations (CSS done, island in stage 4) · [x] Visibility per device · [x] Anchor + custom class · [x] Style variants (class + project classes)
+- [x] Scroll animations · [x] Visibility per device · [x] Anchor + custom class · [x] Style variants (class + project classes)
 
 ### 7. Responsiveness
 
