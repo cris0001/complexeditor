@@ -1,0 +1,190 @@
+@layer ce.base {
+  /*
+   * The document is a container (responsive rules use container queries against it, so the editor's
+   * device preview works without an iframe) and a grid with named lines for normal / wide / full
+   * width blocks.
+   */
+  .ce-document,
+  .ce-flow {
+    --ce-flow-grid: [full-start] minmax(var(--ce-gutter), 1fr) [wide-start]
+      minmax(0, calc((var(--ce-wide-width) - var(--ce-content-width)) / 2)) [content-start]
+      min(var(--ce-content-width), 100% - 2 * var(--ce-gutter)) [content-end]
+      minmax(0, calc((var(--ce-wide-width) - var(--ce-content-width)) / 2)) [wide-end]
+      minmax(var(--ce-gutter), 1fr) [full-end];
+    display: grid;
+    grid-template-columns: var(--ce-flow-grid);
+    align-content: start;
+  }
+
+  .ce-document {
+    container: ce-doc / inline-size;
+    counter-reset: ce-heading;
+    color: var(--ce-color-text);
+    font-family: var(--ce-font-body);
+    font-size: var(--ce-text-m);
+    line-height: 1.65;
+    overflow-wrap: break-word;
+  }
+
+  .ce-document > *,
+  .ce-flow > * {
+    grid-column: content;
+    min-inline-size: 0;
+  }
+
+  /* Vertical rhythm between sibling blocks ("flow"); the style panel's margins override it. */
+  .ce-document > * + *,
+  .ce-flow > * + * {
+    margin-block-start: var(--ce-flow-space, var(--ce-space-s));
+  }
+
+  .ce-document :where(img, video, iframe) {
+    max-inline-size: 100%;
+    block-size: auto;
+  }
+
+  /* Inline formatting */
+  .ce-link {
+    color: var(--ce-link-color, var(--ce-color-primary));
+    text-decoration: underline;
+    text-decoration-thickness: 0.08em;
+    text-underline-offset: 0.15em;
+  }
+  .ce-link:hover {
+    text-decoration-thickness: 0.14em;
+  }
+  .ce-code-inline {
+    font-family: var(--ce-font-mono);
+    font-size: 0.9em;
+    padding: 0.1em 0.35em;
+    border-radius: var(--ce-radius-s);
+    background: var(--ce-color-surface);
+  }
+  .ce-mark {
+    background: var(--ce-mark, var(--ce-color-highlight));
+    color: inherit;
+    padding: 0 0.15em;
+    border-radius: 0.15em;
+  }
+  .ce-color {
+    color: var(--ce-text-color);
+  }
+
+  .ce-unknown {
+    padding: var(--ce-space-s);
+    border: 2px dashed var(--ce-color-danger);
+    color: var(--ce-color-danger);
+    font-family: var(--ce-font-mono);
+    font-size: var(--ce-text-s);
+  }
+
+  .ce-visually-hidden {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+/* Common style settings that are not responsive. */
+@layer ce.style {
+  .ce-bg {
+    background: var(--ce-bg, transparent);
+    color: var(--ce-bg-fg, inherit);
+  }
+  .ce-bg-gradient {
+    background: linear-gradient(var(--ce-bg-angle, 135deg), var(--ce-bg-from), var(--ce-bg-to));
+  }
+  .ce-bg-image {
+    position: relative;
+    isolation: isolate;
+    background-image: var(--ce-bg-image);
+    background-size: cover;
+    background-position: var(--ce-bg-position, center);
+    color: var(--ce-bg-image-fg, #fff);
+  }
+  .ce-bg-image::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: rgb(0 0 0 / var(--ce-bg-overlay, 0.35));
+    border-radius: inherit;
+  }
+  .ce-bg:not(.ce-section, .ce-hero) {
+    padding: var(--ce-space-m);
+  }
+
+  .ce-radius-none {
+    border-radius: 0;
+  }
+  .ce-radius-s {
+    border-radius: var(--ce-radius-s);
+  }
+  .ce-radius-m {
+    border-radius: var(--ce-radius-m);
+  }
+  .ce-radius-l {
+    border-radius: var(--ce-radius-l);
+  }
+
+  .ce-border-none {
+    border: 0;
+  }
+  .ce-border-s {
+    border: var(--ce-border-s) solid var(--ce-color-border);
+  }
+  .ce-border-m {
+    border: var(--ce-border-m) solid var(--ce-color-border);
+  }
+  .ce-border-l {
+    border: var(--ce-border-l) solid var(--ce-color-border);
+  }
+
+  .ce-shadow-none {
+    box-shadow: none;
+  }
+  .ce-shadow-s {
+    box-shadow: var(--ce-shadow-s);
+  }
+  .ce-shadow-m {
+    box-shadow: var(--ce-shadow-m);
+  }
+  .ce-shadow-l {
+    box-shadow: var(--ce-shadow-l);
+  }
+
+  /*
+   * Scroll animations. Blocks stay visible without JavaScript; the client island adds
+   * `ce-anim-ready` to the document and `ce-in-view` to each block as it enters the viewport.
+   */
+  @media (prefers-reduced-motion: no-preference) {
+    .ce-anim-ready .ce-anim {
+      transition:
+        opacity 0.6s ease,
+        translate 0.6s ease,
+        scale 0.6s ease;
+      transition-delay: var(--ce-anim-delay, 0ms);
+    }
+    .ce-anim-ready .ce-anim:not(.ce-in-view) {
+      opacity: 0;
+    }
+    .ce-anim-ready .ce-anim-from-up:not(.ce-in-view) {
+      translate: 0 2rem;
+    }
+    .ce-anim-ready .ce-anim-from-down:not(.ce-in-view) {
+      translate: 0 -2rem;
+    }
+    .ce-anim-ready .ce-anim-from-left:not(.ce-in-view) {
+      translate: -2rem 0;
+    }
+    .ce-anim-ready .ce-anim-from-right:not(.ce-in-view) {
+      translate: 2rem 0;
+    }
+    .ce-anim-ready .ce-anim-zoom:not(.ce-in-view) {
+      scale: 0.92;
+    }
+  }
+}

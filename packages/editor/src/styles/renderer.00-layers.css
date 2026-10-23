@@ -1,6 +1,15 @@
 /*
  * complexeditor renderer styles.
- * Everything lives in cascade layers so that unlayered project styles and
- * Tailwind utilities always win without !important.
+ *
+ * Everything lives in cascade layers so that unlayered project CSS always wins without !important.
+ * With Tailwind, import this file into a Tailwind layer so utilities win as well:
+ *   @import "complexeditor/styles.css" layer(components);
+ *
+ * Layer order (lowest first):
+ *   ce.theme    – design tokens (--ce-* custom properties)
+ *   ce.base     – document layout, flow spacing, inline formatting
+ *   ce.blocks   – default look of every block
+ *   ce.variants – named style variants
+ *   ce.style    – per-block settings from the editor (spacing, width, responsive classes)
  */
-@layer ce.base, ce.blocks, ce.variants;
+@layer ce.theme, ce.base, ce.blocks, ce.variants, ce.style;

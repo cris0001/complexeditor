@@ -1,0 +1,108 @@
+@layer ce.blocks {
+  /* Section */
+  .ce-section {
+    grid-column: full;
+    display: grid;
+    padding-block: var(--ce-space-l);
+  }
+  .ce-section__inner {
+    grid-column: 1 / -1;
+  }
+  .ce-section--content-wide > .ce-section__inner > * {
+    grid-column: wide;
+  }
+  .ce-section--content-full > .ce-section__inner > * {
+    grid-column: full;
+  }
+  .ce-section--valign-start {
+    align-content: start;
+  }
+  .ce-section--valign-center {
+    align-content: center;
+  }
+  .ce-section--valign-end {
+    align-content: end;
+  }
+
+  /* Columns */
+  .ce-columns__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--ce-space-m);
+    /* Progressive enhancement: CSS gap decorations draw dividers where supported. */
+    column-rule: var(--ce-columns-rule, none);
+    row-rule: var(--ce-columns-rule, none);
+  }
+  .ce-columns--dividers {
+    --ce-columns-rule: var(--ce-border-s) solid var(--ce-color-border);
+  }
+  .ce-columns--self {
+    container: ce-doc / inline-size;
+  }
+  /* Custom switch point ("flexbox albatross"): side by side above --ce-columns-switch, stacked below. */
+  .ce-columns--switch > .ce-columns__grid {
+    display: flex;
+    flex-wrap: wrap;
+  }
+  .ce-columns--switch > .ce-columns__grid > .ce-column {
+    flex-grow: var(--ce-col-grow, 1);
+    flex-basis: calc((var(--ce-columns-switch) - 100%) * 999);
+  }
+  .ce-columns--switch > .ce-columns__grid > :nth-child(1) {
+    --ce-col-grow: var(--ce-col-1-grow, 1);
+  }
+  .ce-columns--switch > .ce-columns__grid > :nth-child(2) {
+    --ce-col-grow: var(--ce-col-2-grow, 1);
+  }
+  .ce-columns--switch > .ce-columns__grid > :nth-child(3) {
+    --ce-col-grow: var(--ce-col-3-grow, 1);
+  }
+  .ce-columns--switch > .ce-columns__grid > :nth-child(4) {
+    --ce-col-grow: var(--ce-col-4-grow, 1);
+  }
+  .ce-columns--switch > .ce-columns__grid > :nth-child(5) {
+    --ce-col-grow: var(--ce-col-5-grow, 1);
+  }
+  .ce-columns--switch > .ce-columns__grid > :nth-child(6) {
+    --ce-col-grow: var(--ce-col-6-grow, 1);
+  }
+
+  .ce-column {
+    min-inline-size: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .ce-column > * + * {
+    margin-block-start: var(--ce-flow-space, var(--ce-space-s));
+  }
+  .ce-column--sticky {
+    position: sticky;
+    inset-block-start: var(--ce-sticky-offset, 1.5rem);
+    align-self: start;
+  }
+  .ce-column--valign-start {
+    justify-content: flex-start;
+  }
+  .ce-column--valign-center {
+    justify-content: center;
+  }
+  .ce-column--valign-end {
+    justify-content: flex-end;
+  }
+
+  /* Grid */
+  .ce-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(var(--ce-grid-min, 16rem), 100%), 1fr));
+    gap: var(--ce-space-m);
+  }
+  .ce-grid--valign-start {
+    align-items: start;
+  }
+  .ce-grid--valign-center {
+    align-items: center;
+  }
+  .ce-grid--valign-end {
+    align-items: end;
+  }
+}

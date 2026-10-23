@@ -4,13 +4,15 @@ Status legend: `[ ]` todo · `[~]` in progress · `[x]` done. Spec: `prompt-edyt
 
 ## Next step
 
-Stage 3 — block engine (`packages/editor/src/core/`, `src/renderer/`, `src/styles/`):
+Stage 4 — all remaining blocks (`packages/editor/src/blocks/`, styles in `src/styles/renderer.*.css`).
+Done so far: paragraph, heading, section, columns, column, grid (engine proven, 86 tests).
 
-1. `core/define-block.ts`: `defineBlock({ type, category, icon, props (zod), defaultProps, slots, textProps, container: { childTypes?, isContainer }, render, editor?, inspector?, i18n })` with typed slot names.
-2. `core/registry.ts`: `createRegistry(blocks)` → lookup, `validateOptions()` (feeds `validateDocument` with `blockProps`/`knownTypes`), `textProps`, nesting depth check (default: max 1 container inside a container).
-3. `core/theme.ts`: `defineTheme` + default theme, `themeToCss()` → `--ce-*` vars (dark mode, breakpoints).
-4. `renderer/`: `<ContentRenderer document registry theme classNames components mergeClasses />` (RSC-safe). Block style → classes + CSS vars only (plan: `--ce-mt`, `--ce-mt-md`… vars resolved by media/container queries in CSS), slot `classes` merging, unknown-block fallback.
-5. Test that rendered output never contains inline CSS properties (only `--ce-*` vars).
+1. Client islands infrastructure first: new entry `complexeditor/renderer/client` (tsup client config with `'use client'` banner), imported from server code through the package self-reference so the directive survives bundling (tsconfig `paths` + vitest alias → `src/renderer/client/index.ts`). Islands hydrate server-rendered markup (progressive enhancement). Scroll-animation island (IntersectionObserver → `ce-anim-ready` / `ce-in-view`), rendered only when the document uses `style.animation`.
+2. Text: quote, callout (collapsible via `<details>`), code (MIT highlighter, copy-button island, line numbers, filename), separator.
+3. List (`list` + `list-item` children, nesting, bullet/number/check/arrow/custom icon, responsive columns) and table (`table-row`/`table-cell` children with `content`; header row/column, stripes, per-column align, mobile scroll vs cards).
+4. Media: image (aspect, focal point, mobile art direction via `<picture>`, caption below/overlay, link, lightbox, hover, radius, shadow, width), gallery (one image list; grid/masonry/bento/slider/strip, responsive layout), before/after, lightbox island, hero, video (lite YouTube/Vimeo, file, background mode), embed (iframe + script providers per REPORT 20a), file download.
+5. Interactive: buttons, accordion/FAQ (+ JSON-LD), tabs (accordion on mobile), card, counter/stats, timeline.
+6. Kitchen-sink render test with every block + the no-inline-style test over it.
 
 Note for shell use: the Bash tool here strips `\\` inside heredocs; write files with the Write tool.
 
@@ -18,8 +20,8 @@ Note for shell use: the Bash tool here strips `\\` inside heredocs; write files 
 
 - [x] 1. Monorepo, tooling, CI (pnpm workspace, TS strict, ESLint, Prettier, Vitest, tsup, changesets, license check, GitHub Actions)
 - [x] 2. Data format: types, Zod, migrations, helpers, tests
-- [ ] 3. Block engine: `defineBlock`, registry, theme, renderer + responsive styles, `@layer`, slots & `classes`
-- [ ] 4. All blocks: renderers and styles
+- [x] 3. Block engine: `defineBlock`, registry, theme, renderer + responsive styles, `@layer`, slots & `classes`
+- [~] 4. All blocks: renderers and styles
 - [ ] 5. Editor: state, history, canvas, panels, DnD, Tiptap + conversion, outlines, inspector, slash menu, shortcuts, paste
 - [ ] 6. Media: upload, link, media library
 - [ ] 7. i18n (UI + content), permissions, saved styles, global blocks, templates, variants
@@ -36,30 +38,32 @@ Note for shell use: the Bash tool here strips `\\` inside heredocs; write files 
 - [x] Responsive values `{ base, sm, md, lg, xl }`
 - [x] `version` + migrations
 - [x] Zod validation with readable errors; unknown block → warning
-- [ ] Renderer fallback for unknown blocks (stage 3)
+- [x] Renderer fallback for unknown blocks (visible in dev, nothing in production)
 - [x] Security: no raw HTML, URL sanitizing, embed allow-list
 - [x] Localized values strategy (§11)
 - [x] Helpers: TOC headings, reading time, plain text
 
 ### 5. Blocks
 
-- [ ] Heading · [ ] Paragraph · [ ] Quote · [ ] Callout · [ ] Code · [ ] Separator
-- [ ] Inline marks: bold, italic, underline, strike, link, highlight, palette color, code, sup, sub
+- [x] Heading · [x] Paragraph · [ ] Quote · [ ] Callout · [ ] Code · [ ] Separator
+- [x] Inline marks: bold, italic, underline, strike, link, highlight, palette color, code, sup, sub (renderer)
 - [ ] List · [ ] Table
-- [ ] Section · [ ] Columns · [ ] Grid · [ ] Nesting depth limit
+- [x] Section · [x] Columns · [x] Grid · [x] Nesting depth limit
 - [ ] Image · [ ] Gallery (grid, masonry, bento, slider, scroll strip) · [ ] Before/after · [ ] Lightbox
 - [ ] Hero · [ ] Video · [ ] Embed · [ ] File download
 - [ ] Button(s) · [ ] Accordion/FAQ · [ ] Tabs · [ ] Card · [ ] Counter/stats · [ ] Timeline
 
 ### 6. Common style panel
 
-- [ ] Margin/padding scale · [ ] Width · [ ] Align · [ ] Background · [ ] Radius/border/shadow
-- [ ] Scroll animations · [ ] Visibility per device · [ ] Anchor + custom class · [ ] Style variants
+Renderer side done; inspector UI comes in stage 5.
+
+- [x] Margin/padding scale · [x] Width · [x] Align · [x] Background · [x] Radius/border/shadow
+- [~] Scroll animations (CSS done, island in stage 4) · [x] Visibility per device · [x] Anchor + custom class · [x] Style variants (class + project classes)
 
 ### 7. Responsiveness
 
-- [ ] Theme breakpoints · [ ] Device switcher + reset in inspector · [ ] Custom breakpoint for containers
-- [ ] Container queries mode · [ ] No-JS responsive CSS, no per-block inline `<style>`
+- [x] Theme breakpoints · [ ] Device switcher + reset in inspector · [x] Custom breakpoint for containers (albatross)
+- [x] Container queries mode (default) + media mode · [x] No-JS responsive CSS, no per-block inline `<style>`
 
 ### 8. Media
 
@@ -68,10 +72,10 @@ Note for shell use: the Bash tool here strips `\\` inside heredocs; write files 
 
 ### 9. Theme & styling
 
-- [ ] Theme object → CSS vars (fonts, fluid type, palette, spacing, radii, shadows, breakpoints, variants, dark mode)
-- [ ] Component override per block · [ ] `ce-` classes, `--ce-` vars, `@layer` order vs Tailwind
-- [ ] No inline property styles (test) · [ ] Separate renderer/editor CSS
-- [ ] Slots `classNames` API (global, per variant, function of props, custom merge) + types
+- [x] Theme object → CSS vars (fonts, fluid type, palette, spacing, radii, shadows, breakpoints, variants, dark mode)
+- [x] Component override per block (+ Image/Link) · [x] `ce-` classes, `--ce-` vars, `@layer` order vs Tailwind
+- [x] No inline property styles (test) · [~] Separate renderer/editor CSS (editor CSS in stage 5)
+- [x] Slots `classNames` API (global, per variant, function of props, custom merge) · [ ] typed `defineClassNames` helper
 - [ ] Variants for editors · [ ] Custom CSS class field (allow-list / disable)
 - [ ] `complexeditor/tailwind` theme integration
 - [ ] Tailwind live mode (browser compile, server helper, `generatedCss`, autocomplete, security, roles, v3/v4 detection)
@@ -91,8 +95,8 @@ Note for shell use: the Bash tool here strips `\\` inside heredocs; write files 
 
 ### 12. Reuse & extensibility
 
-- [ ] Saved styles · [ ] Global blocks · [ ] Post templates · [ ] `defineBlock` public API (built-ins use it)
-- [ ] Declarative inspector fields · [ ] Renderer/UI component overrides
+- [ ] Saved styles · [ ] Global blocks · [ ] Post templates · [x] `defineBlock` public API (built-ins use it)
+- [~] Declarative inspector fields (definitions done, UI in stage 5) · [~] Renderer/UI component overrides (renderer done)
 
 ### 13. Demo app
 

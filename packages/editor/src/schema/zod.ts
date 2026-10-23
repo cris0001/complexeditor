@@ -88,7 +88,7 @@ export const textNodeSchema: z.ZodType<TextNode> = z.strictObject({
 
 export const inlineContentSchema = z.array(textNodeSchema);
 
-const spaceValue = z.union([
+export const spaceValue = z.union([
   z.enum(['none', 'xs', 's', 'm', 'l', 'xl']),
   z.strictObject({ custom: cssLength }),
 ]);

@@ -4,7 +4,8 @@ const shared: Options = {
   format: ['esm'],
   dts: true,
   sourcemap: true,
-  treeshake: true,
+  // esbuild already tree-shakes ESM; tsup's extra Rollup pass would strip 'use client' directives.
+  treeshake: false,
   splitting: true,
   target: 'es2022',
   external: ['react', 'react-dom', 'tailwindcss'],

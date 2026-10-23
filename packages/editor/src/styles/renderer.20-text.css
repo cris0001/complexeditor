@@ -1,0 +1,80 @@
+@layer ce.blocks {
+  /* Heading */
+  .ce-heading {
+    margin-block-start: var(--ce-heading-space, var(--ce-space-l));
+  }
+  :where(.ce-document, .ce-flow, .ce-column) > .ce-heading:first-child {
+    margin-block-start: 0;
+  }
+  .ce-heading__text {
+    margin: 0;
+    font-family: var(--ce-heading-font, var(--ce-font-heading));
+    font-size: var(--ce-heading-size, var(--ce-heading-default-size));
+    color: var(--ce-heading-color, inherit);
+    line-height: 1.2;
+    font-weight: 700;
+    letter-spacing: -0.01em;
+    text-wrap: balance;
+    scroll-margin-block-start: var(--ce-scroll-offset, 1.5rem);
+  }
+  .ce-heading--level-2 {
+    --ce-heading-default-size: var(--ce-text-3xl);
+  }
+  .ce-heading--level-3 {
+    --ce-heading-default-size: var(--ce-text-2xl);
+  }
+  .ce-heading--level-4 {
+    --ce-heading-default-size: var(--ce-text-xl);
+  }
+  .ce-heading__eyebrow {
+    margin: 0 0 0.35em;
+    font-size: var(--ce-text-s);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ce-heading-eyebrow-color, var(--ce-color-primary));
+  }
+  .ce-heading--deco-underline .ce-heading__text::after {
+    content: '';
+    display: block;
+    inline-size: 3rem;
+    block-size: 0.2rem;
+    margin-block-start: 0.45em;
+    border-radius: 1rem;
+    background: var(--ce-heading-accent, var(--ce-color-accent));
+  }
+  .ce-align-center .ce-heading__text::after,
+  .ce-heading.ce-align-center .ce-heading__text::after {
+    margin-inline: auto;
+  }
+  .ce-heading--deco-number .ce-heading__text::before {
+    counter-increment: ce-heading;
+    content: counter(ce-heading, decimal-leading-zero);
+    display: block;
+    font-size: 0.55em;
+    color: var(--ce-heading-accent, var(--ce-color-accent));
+    margin-block-end: 0.2em;
+  }
+
+  /* Paragraph */
+  .ce-paragraph {
+    margin-block-end: 0;
+    text-wrap: pretty;
+  }
+  .ce-paragraph--lead {
+    font-size: var(--ce-text-l);
+    color: var(--ce-paragraph-lead-color, inherit);
+  }
+  .ce-paragraph--small {
+    font-size: var(--ce-text-s);
+  }
+  .ce-paragraph--drop-cap::first-letter {
+    float: inline-start;
+    font-family: var(--ce-font-heading);
+    font-size: 3.6em;
+    line-height: 0.85;
+    font-weight: 700;
+    margin: 0.06em 0.1em 0 0;
+    color: var(--ce-color-primary);
+  }
+}
