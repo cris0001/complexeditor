@@ -110,6 +110,13 @@ export interface RenderContext {
   parent: Block | null;
   /** Editor only: adds attributes (selection hooks, outline data) to each block's root. */
   decorateRoot?: (block: Block, def: BlockDefinition, root: RootAttributes, depth: number) => RootAttributes;
+  /** Content of global blocks by id (already resolved for the document's language). */
+  globals?: Readonly<Record<string, Block[]>>;
+  /**
+   * Context for content that must not be editable inside the editor (global blocks). Undefined
+   * outside the editor, where everything is static anyway.
+   */
+  readonly?: RenderContext;
   /** Editor only: the device being previewed (art direction cannot use container queries). */
   previewDevice?: 'mobile' | 'tablet' | 'desktop';
 }

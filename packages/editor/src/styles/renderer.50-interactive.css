@@ -350,3 +350,10 @@
     }
   }
 }
+
+@layer ce.blocks {
+  /* Global block: a full-width flow grid, so its content lays out like the surrounding document. */
+  .ce-global {
+    grid-column: full;
+  }
+}

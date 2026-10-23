@@ -341,7 +341,7 @@ function galleryLayoutCss(cls: (value?: string) => string): string {
     `${track('slider')} { ${resetTrack} display: grid; grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: calc((100% - (var(--ce-gallery-spv) - 1) * var(--ce-gallery-gap)) / var(--ce-gallery-spv) - var(--ce-gallery-peek, 0%)); overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain; }`,
     `${item('slider')} { ${resetItem} scroll-snap-align: start; }`,
     `${img('slider')} { aspect-ratio: var(--ce-aspect, 16 / 9); block-size: auto; inline-size: 100%; }`,
-    `${cls('slider')}.ce-is-enhanced > .ce-gallery__controls { display: flex; }`,
+    `${controls('slider')} { display: flex; }`,
 
     `${cls('strip')} { --ce-gallery-mode: strip; }`,
     `${track('strip')} { ${resetTrack} display: grid; grid-template-columns: none; grid-auto-flow: column; grid-auto-columns: max-content; overflow-x: auto; scroll-snap-type: x proximity; padding-block-end: 0.5rem; }`,

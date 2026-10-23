@@ -235,7 +235,9 @@ describe('built-in blocks', () => {
     const missing = defaultRegistry
       .all()
       .map((d) => d.type)
-      .filter((type) => !used.has(type) && !['section', 'columns', 'column', 'grid'].includes(type));
+      .filter(
+        (type) => !used.has(type) && !['section', 'columns', 'column', 'grid', 'global'].includes(type),
+      );
     expect(missing).toEqual([]);
   });
 
@@ -359,5 +361,35 @@ describe('built-in blocks', () => {
 
   it('escapes JSON-LD', () => {
     expect(jsonLd({ a: '</script><b>' })).toBe('{"a":"\\u003c/script>\\u003cb>"}');
+  });
+});
+
+describe('global block', () => {
+  const shared = [p('Shared footer')];
+  const withGlobal: ContentDocument = {
+    version: 1,
+    blocks: [p('Body'), { id: 'g', type: 'global', props: { ref: 'footer' } }],
+  };
+
+  it('renders the referenced content in the flow', () => {
+    const out = renderToStaticMarkup(
+      <ContentRenderer document={withGlobal} globals={{ footer: shared }} dev={false} />,
+    );
+    expect(out).toContain(
+      '<div class="ce-global ce-block ce-flow"><p class="ce-paragraph ce-block">Shared footer</p></div>',
+    );
+  });
+
+  it('renders nothing when the content is missing', () => {
+    const out = renderToStaticMarkup(<ContentRenderer document={withGlobal} dev={false} />);
+    expect(out).not.toContain('ce-global');
+  });
+
+  it('requires a reference', () => {
+    const result = validateDocument(
+      { version: 1, blocks: [{ id: 'g', type: 'global', props: {} }] },
+      defaultRegistry.validateOptions(),
+    );
+    expect(result.success).toBe(false);
   });
 });

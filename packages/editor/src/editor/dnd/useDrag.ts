@@ -38,7 +38,7 @@ export function useDrag() {
 
   return useCallback(
     (event: ReactPointerEvent, source: DragSource) => {
-      if (event.button !== 0) return;
+      if (event.button > 0) return;
       const startX = event.clientX;
       const startY = event.clientY;
       let started = false;

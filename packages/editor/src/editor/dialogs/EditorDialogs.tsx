@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import type { Block } from '../../schema/types';
+import { useMemo, useState } from 'react';
+import type { Block, ContentDocument } from '../../schema/types';
+import { Editor } from '../Editor';
 import { useDocument, useEditor, useEditorState } from '../context';
 import { findBlock, withNewIds } from '../state/operations';
 import { MediaLibrary } from '../media/MediaLibrary';
@@ -22,6 +23,8 @@ export function EditorDialogs() {
       );
     case 'shortcuts':
       return <ShortcutsDialog />;
+    case 'editGlobal':
+      return <EditGlobalDialog globalId={dialog.globalId} />;
     default:
       return null;
   }
@@ -182,6 +185,88 @@ function TemplateDialog({ templateId, locale }: { templateId: string; locale: st
     >
       {template.description && <p>{label(template.description)}</p>}
       <p className="ce-ed-muted">{t('applyTemplateConfirm')}</p>
+    </Dialog>
+  );
+}
+
+/** Edits a global block in a nested editor; saving updates every post that references it. */
+function EditGlobalDialog({ globalId }: { globalId: string }) {
+  const { t, props, globals, updateGlobal } = useEditor();
+  const close = useClose();
+  const global = globals[globalId];
+  const locale = props.contentLocale ?? props.translation?.current ?? 'en';
+  const initial = useMemo(
+    () => ({
+      version: 1,
+      blocks: (global && (global.blocks[locale] ?? Object.values(global.blocks).find(Boolean))) || [],
+    }),
+    // The nested editor is created once per opening.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [globalId],
+  );
+  const [draft, setDraft] = useState<ContentDocument>(initial);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState(false);
+  if (!global || !props.onSaveGlobalBlock) return null;
+
+  return (
+    <Dialog
+      wide
+      title={`${t('editGlobal')}: ${global.name}`}
+      onClose={close}
+      footer={
+        <>
+          {error && <span className="ce-ed-error">{t('error')}</span>}
+          <button type="button" className="ce-ed-button" onClick={close}>
+            {t('cancel')}
+          </button>
+          <button
+            type="button"
+            className="ce-ed-button ce-ed-button--primary"
+            disabled={busy}
+            onClick={async () => {
+              setBusy(true);
+              setError(false);
+              try {
+                const saved = await props.onSaveGlobalBlock!({
+                  ...global,
+                  blocks: { ...global.blocks, [locale]: draft.blocks },
+                });
+                updateGlobal(saved);
+                close();
+              } catch {
+                setError(true);
+              } finally {
+                setBusy(false);
+              }
+            }}
+          >
+            {t('save')}
+          </button>
+        </>
+      }
+    >
+      <div className="ce-ed-nested">
+        <Editor
+          value={initial}
+          onChange={setDraft}
+          autosaveDelay={false}
+          registry={props.registry}
+          theme={props.theme}
+          classNames={props.classNames}
+          mergeClasses={props.mergeClasses}
+          components={props.components}
+          locale={props.locale}
+          messages={props.messages}
+          dictionaries={props.dictionaries}
+          contentLocale={locale}
+          permissions={{ ...props.permissions, blocks: (type) => type !== 'global' }}
+          onUpload={props.onUpload}
+          onListMedia={props.onListMedia}
+          onUpdateMedia={props.onUpdateMedia}
+          onDeleteMedia={props.onDeleteMedia}
+        />
+      </div>
     </Dialog>
   );
 }

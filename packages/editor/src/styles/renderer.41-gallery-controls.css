@@ -108,6 +108,10 @@
 /* Fade effect: slides stacked in one cell, the island toggles the active one. Must beat the
    responsive slider layout rules, hence ce.style and the extra .ce-gallery class. */
 @layer ce.style {
+  /* Controls need the island; without JavaScript the slider is a plain swipeable strip. */
+  .ce-gallery:not(.ce-is-enhanced) > .ce-gallery__controls {
+    display: none;
+  }
   .ce-gallery.ce-gallery--fading > .ce-gallery__track {
     grid-auto-columns: 100%;
     overflow: hidden;

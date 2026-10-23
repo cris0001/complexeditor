@@ -21,9 +21,16 @@ const CATEGORY_OUTLINE: Record<BlockCategory, OutlineKind> = {
  * fields and data attributes on each block root (no wrapper elements, so the CSS stays 1:1).
  */
 export function useEditorRenderContext(doc: ContentDocument): RenderContext {
-  const { props, registry, blockName } = useEditor();
+  const { props, registry, blockName, globals } = useEditor();
   const device = useEditorState((s) => s.device);
   return useMemo(() => {
+    const locale = props.contentLocale ?? props.translation?.current;
+    // Global block content in the document's language (falls back to any available version).
+    const globalContent: Record<string, ContentDocument['blocks']> = {};
+    for (const [id, g] of Object.entries(globals)) {
+      const blocks = (locale && g.blocks[locale]) ?? Object.values(g.blocks).find(Boolean);
+      if (blocks) globalContent[id] = blocks;
+    }
     const base = createRenderContext(doc, {
       registry,
       theme: props.theme,
@@ -31,13 +38,17 @@ export function useEditorRenderContext(doc: ContentDocument): RenderContext {
       mergeClasses: props.mergeClasses,
       components: props.components,
       highlight: props.highlight,
-      locale: props.contentLocale ?? props.translation?.current,
+      locale,
+      globals: globalContent,
       dev: true,
     });
+    // Static rendering (no editable fields, no islands) for global block content.
+    const readonly: RenderContext = { ...base, mode: 'editor', previewDevice: device };
     const ctx: RenderContext = {
       ...base,
       mode: 'editor',
       previewDevice: device,
+      readonly,
       decorateRoot: (block, def, root, depth) => {
         // Hidden-on-device blocks stay selectable in the editor (dimmed via CSS instead).
         const hidden = (['mobile', 'tablet', 'desktop'] as const).filter((d) => block.style?.hidden?.[d]);
@@ -73,6 +84,7 @@ export function useEditorRenderContext(doc: ContentDocument): RenderContext {
     device,
     registry,
     blockName,
+    globals,
     props.theme,
     props.classNames,
     props.mergeClasses,

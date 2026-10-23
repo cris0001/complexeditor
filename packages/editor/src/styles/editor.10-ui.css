@@ -982,3 +982,13 @@
     accent-color: var(--ce-ed-accent);
   }
 }
+
+@layer ce.editor {
+  /* Nested editor (global block dialog). */
+  .ce-ed-nested {
+    block-size: min(70dvh, 44rem);
+    border: 1px solid var(--ce-ed-border);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+}

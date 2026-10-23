@@ -219,7 +219,7 @@ export function InlineField({ block, ctx }: InlineFieldProps) {
       data-placeholder={placeholder}
       data-empty={block.content?.length ? undefined : ''}
       onMouseDown={(event) => {
-        if (event.button !== 0) return;
+        if (event.button > 0) return;
         // The static span is replaced by the editor right away; the editor places the caret itself.
         event.preventDefault();
         clickPoint.current = { x: event.clientX, y: event.clientY };

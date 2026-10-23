@@ -95,7 +95,8 @@ describe('document operations', () => {
   });
 
   it('creates valid blocks of every type from the registry', () => {
-    for (const def of defaultRegistry.all()) {
+    // A global block needs a reference to existing content, so it is never created empty.
+    for (const def of defaultRegistry.all().filter((d) => d.type !== 'global')) {
       const block = createBlock(defaultRegistry, def.type);
       const parents = def.parents ? [] : [block];
       if (parents.length === 0) continue;

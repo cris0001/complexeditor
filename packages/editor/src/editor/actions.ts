@@ -15,6 +15,7 @@ import {
   type DropTarget,
 } from './state/operations';
 import type { EditorStore } from './state/store';
+import type { GlobalBlock } from './types';
 
 /** Blocks that behave like lines of text: Enter splits them, Backspace merges them. */
 export const FLOW_TEXT = new Set(['paragraph', 'heading', 'quote', 'list-item']);
@@ -66,6 +67,8 @@ export interface Actions {
   /** Focus the previous / next text field (arrow keys at the edges). */
   focusSibling(blockId: string, direction: -1 | 1): boolean;
   update(id: string, update: (block: Block) => Block, group?: string): void;
+  /** Replaces a global block reference with an editable copy of its content. */
+  detachGlobal(id: string, globals: Record<string, GlobalBlock>, locale?: string): void;
 }
 
 /** Flattened list of blocks that have editable inline content, in reading order. */
@@ -313,6 +316,24 @@ export function createActions(store: EditorStore, registry: Registry): Actions {
 
     update(id, update, group) {
       store.change((d) => updateBlock(d, id, update), group ? { group } : undefined);
+    },
+
+    detachGlobal(id, globals, locale) {
+      const location = findBlock(doc(), id);
+      const ref = location?.block.props.ref;
+      const global = typeof ref === 'string' ? globals[ref] : undefined;
+      if (!location || !global) return;
+      const blocks =
+        (locale ? global.blocks[locale] : undefined) ?? Object.values(global.blocks).find(Boolean) ?? [];
+      const copies = blocks.map((b) => withNewIds(structuredClone(b)));
+      store.change(
+        (d) =>
+          insertBlocks(removeBlocks(d, [id]), copies, {
+            parentId: location.parent?.id ?? null,
+            index: location.index,
+          }),
+        { select: copies[0]?.id ?? null },
+      );
     },
   };
   return actions;

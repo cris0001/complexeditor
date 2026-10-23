@@ -49,7 +49,7 @@ function useBlockBox(frame: RefObject<HTMLElement | null>, id: string | null): B
  * the drop indicator and the drag ghost. Dashed category outlines are pure CSS on the blocks.
  */
 export function Overlay({ frame }: { frame: RefObject<HTMLElement | null> }) {
-  const { t, actions, store, blockName, registry, permissions, props } = useEditor();
+  const { t, actions, store, blockName, registry, permissions, props, globals } = useEditor();
   const selection = useEditorState((s) => s.selection);
   const hovered = useEditorState((s) => s.hovered);
   const drag = useEditorState((s) => s.drag);
@@ -151,6 +151,32 @@ export function Overlay({ frame }: { frame: RefObject<HTMLElement | null> }) {
                         store.set({ dialog: { kind: 'saveGlobal', blockId: selected.block.id } })
                       }
                     />
+                  )}
+                  {selected.block.type === 'global' && typeof selected.block.props.ref === 'string' && (
+                    <>
+                      {props.onSaveGlobalBlock && (
+                        <ActionButton
+                          icon="settings"
+                          label={t('editGlobal')}
+                          onClick={() =>
+                            store.set({
+                              dialog: { kind: 'editGlobal', globalId: selected.block.props.ref as string },
+                            })
+                          }
+                        />
+                      )}
+                      <ActionButton
+                        icon="parent"
+                        label={t('detachGlobal')}
+                        onClick={() =>
+                          actions.detachGlobal(
+                            selected.block.id,
+                            globals,
+                            props.contentLocale ?? props.translation?.current,
+                          )
+                        }
+                      />
+                    </>
                   )}
                   <ActionButton
                     icon="trash"

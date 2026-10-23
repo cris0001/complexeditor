@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type DragEvent, type RefObject } from 'react';
 import type { ContentDocument } from '../schema/types';
 import { createEmptyDocument } from '../schema/parse';
 import { migrate, needsMigration } from '../schema/migrate';
@@ -47,7 +47,8 @@ export function Editor(props: EditorProps) {
 
   useOnChange(ctx);
   const saveNow = useAutosave(ctx);
-  useShortcuts(ctx, saveNow);
+  const root = useRef<HTMLDivElement>(null);
+  useShortcuts(ctx, saveNow, root);
   const onDrop = useFileDrop(ctx);
 
   const device = useStoreSelector(store, (s) => s.device);
@@ -55,6 +56,7 @@ export function Editor(props: EditorProps) {
   return (
     <EditorContextProvider value={ctx}>
       <div
+        ref={root}
         className={cx('ce-editor', props.className)}
         data-device={device}
         onDragOver={onDrop.over}
@@ -154,13 +156,29 @@ function targetAfterSelection(ctx: EditorContextValue): DropTarget {
   return { parentId: location.parent?.id ?? null, index: location.index + 1 };
 }
 
-function useShortcuts(ctx: EditorContextValue, saveNow: () => void) {
+/** The editor the user interacted with last (popovers in portals belong to it). */
+let activeRoot: HTMLElement | null = null;
+
+function useShortcuts(ctx: EditorContextValue, saveNow: () => void, root: RefObject<HTMLDivElement | null>) {
   const latest = useRef(ctx);
   latest.current = ctx;
 
   useEffect(() => {
-    const inEditor = (target: EventTarget | null) =>
-      Boolean((target as HTMLElement | null)?.closest?.('.ce-editor, .ce-editor-portal'));
+    const el = root.current;
+    const activate = () => {
+      activeRoot = el;
+    };
+    // Remember which editor was used last (popovers rendered into <body> belong to it).
+    el?.addEventListener('focusin', activate);
+    el?.addEventListener('pointerdown', activate);
+    // Several editors can share a page (e.g. the global block dialog): each one only handles
+    // events from its own tree, and portal events go to the most recently used editor.
+    const inEditor = (target: EventTarget | null) => {
+      const node = target as HTMLElement | null;
+      const owner = node?.closest?.('.ce-editor');
+      if (owner) return owner === el;
+      return Boolean(node?.closest?.('.ce-editor-portal')) && activeRoot === el;
+    };
     const isField = (target: EventTarget | null) => {
       const el = target as HTMLElement | null;
       return Boolean(
@@ -295,8 +313,11 @@ function useShortcuts(ctx: EditorContextValue, saveNow: () => void) {
       document.removeEventListener('copy', onCopy);
       document.removeEventListener('cut', onCut);
       document.removeEventListener('paste', onPaste);
+      el?.removeEventListener('focusin', activate);
+      el?.removeEventListener('pointerdown', activate);
+      if (activeRoot === el) activeRoot = null;
     };
-  }, [saveNow]);
+  }, [saveNow, root]);
 }
 
 /** Files dragged from the desktop onto the canvas. */

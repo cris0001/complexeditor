@@ -1,5 +1,6 @@
 import { createRegistry, type RegistryOptions } from '../core/registry';
 import type { AnyBlockDefinition } from '../core/types';
+import { globalBlock } from './global';
 import { heading } from './heading';
 import {
   accordion,
@@ -54,6 +55,7 @@ export {
   stat,
   timeline,
   timelineItem,
+  globalBlock,
 };
 export { COLUMN_PRESETS, type ColumnPreset } from './layout';
 export { GALLERY_LAYOUTS, Picture } from './media';
@@ -99,6 +101,7 @@ export const builtinBlocks: readonly AnyBlockDefinition[] = [
   stat,
   timeline,
   timelineItem,
+  globalBlock,
 ];
 
 /**

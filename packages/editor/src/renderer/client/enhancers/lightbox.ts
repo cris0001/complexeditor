@@ -147,7 +147,7 @@ export const enhance: Enhancer = (root, options) => {
 
   const offs = links.map((link, i) =>
     on(link, 'click', (event) => {
-      if (event.metaKey || event.ctrlKey || event.shiftKey || event.button !== 0) return;
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.button > 0) return;
       event.preventDefault();
       open(i, link);
     }),

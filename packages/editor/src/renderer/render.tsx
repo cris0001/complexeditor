@@ -36,6 +36,8 @@ export interface RenderOptions {
   locale?: string;
   /** Override renderer strings (buttons, labels) for the document's locale. */
   messages?: Partial<RendererMessages>;
+  /** Content of global blocks referenced by the document, by id (resolved for its language). */
+  globals?: Readonly<Record<string, Block[]>>;
   /** Replace the default (highlight.js via lowlight) code highlighter. */
   highlight?: CodeHighlighter;
   /** Show visible fallbacks for unknown blocks. Defaults to `process.env.NODE_ENV !== 'production'`. */
@@ -132,6 +134,7 @@ export function createRenderContext(document: ContentDocument, options: RenderOp
     dev: options.dev ?? isDev(),
     t: (key, values) => format(messages[key], values),
     highlight: options.highlight ?? defaultHighlighter,
+    globals: options.globals,
     depth: 0,
     parent: null,
     renderBlocks(blocks, _parent) {

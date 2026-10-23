@@ -32,7 +32,7 @@ export function Canvas() {
     (target as HTMLElement | null)?.closest<HTMLElement>('[data-ce-id]');
 
   const onPointerDown = (event: PointerEvent) => {
-    if (event.button !== 0) return;
+    if (event.button > 0) return;
     const target = event.target as HTMLElement;
     if (target.closest('.ce-ed-actions, .ce-ed-empty__add')) return;
     const block = blockAt(target);

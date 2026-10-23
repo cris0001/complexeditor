@@ -875,6 +875,18 @@ function ClassesField({ value, onChange, label }: FieldProps<string>) {
   );
 }
 
+function GlobalRefField({ value, onChange, label }: FieldProps<string>) {
+  const { globals } = useEditor();
+  return (
+    <Select
+      value={value}
+      label={label}
+      onChange={(v) => v && onChange(v)}
+      options={Object.values(globals).map((g) => ({ value: g.id, label: g.name }))}
+    />
+  );
+}
+
 /** Built-in field types. Projects add or replace types through `<Editor fields>`. */
 export const BUILTIN_FIELDS: Record<string, FieldComponent> = {
   text: TextField as FieldComponent,
@@ -907,4 +919,5 @@ export const BUILTIN_FIELDS: Record<string, FieldComponent> = {
   heroMedia: HeroMediaField as FieldComponent,
   videoSource: VideoSourceField as FieldComponent,
   classes: ClassesField as FieldComponent,
+  globalRef: GlobalRefField as FieldComponent,
 };
