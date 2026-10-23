@@ -31,38 +31,33 @@ describe('Tiptap conversion', () => {
     ).toEqual({
       type: 'doc',
       content: [
+        { type: 'text', text: 'Hi ' },
         {
-          type: 'paragraph',
-          content: [
-            { type: 'text', text: 'Hi ' },
-            {
-              type: 'text',
-              text: 'there',
-              marks: [
-                { type: 'link', attrs: { href: 'https://e.com', target: '_blank', rel: null } },
-                { type: 'bold' },
-              ],
-            },
-            {
-              type: 'hardBreak',
-              marks: [
-                { type: 'link', attrs: { href: 'https://e.com', target: '_blank', rel: null } },
-                { type: 'bold' },
-              ],
-            },
-            {
-              type: 'text',
-              text: 'friend',
-              marks: [
-                { type: 'link', attrs: { href: 'https://e.com', target: '_blank', rel: null } },
-                { type: 'bold' },
-              ],
-            },
+          type: 'text',
+          text: 'there',
+          marks: [
+            { type: 'link', attrs: { href: 'https://e.com', target: '_blank', rel: null } },
+            { type: 'bold' },
+          ],
+        },
+        {
+          type: 'hardBreak',
+          marks: [
+            { type: 'link', attrs: { href: 'https://e.com', target: '_blank', rel: null } },
+            { type: 'bold' },
+          ],
+        },
+        {
+          type: 'text',
+          text: 'friend',
+          marks: [
+            { type: 'link', attrs: { href: 'https://e.com', target: '_blank', rel: null } },
+            { type: 'bold' },
           ],
         },
       ],
     });
-    expect(toProseMirror([])).toEqual({ type: 'doc', content: [{ type: 'paragraph' }] });
+    expect(toProseMirror([])).toEqual({ type: 'doc' });
   });
 
   it.each(ALL_MARKS.map((mark) => [mark.type, mark] as const))('round-trips the %s mark', (_type, mark) => {

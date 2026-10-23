@@ -168,6 +168,11 @@ export const columns = defineBlock({
     defaultChild: () => ({ type: 'column', props: {}, children: [] }),
   },
   keywords: ['flex', 'kolumny', 'columns', 'layout', 'układ'],
+  summary: (p) => {
+    const layout = toResponsiveObject(p.layout);
+    const preset = layout.md ?? layout.lg ?? layout.base;
+    return preset && preset !== 'custom' ? preset.replace(/-/g, '/') : undefined;
+  },
   create: () => ({
     type: 'columns',
     props: { layout: { base: '100', md: '50-50' } },

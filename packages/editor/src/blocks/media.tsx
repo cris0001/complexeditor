@@ -68,6 +68,20 @@ export function Picture({
   );
   const mobileSrc = mobile && sanitizeUrl(mobile.src);
   if (!mobileSrc) return img;
+  // The editor previews devices by width, which `<source media>` cannot see.
+  if (ctx.previewDevice) {
+    return ctx.previewDevice === 'mobile' ? (
+      <Image
+        src={mobileSrc}
+        alt={alt ?? mobile.alt ?? image.alt ?? ''}
+        width={mobile.width}
+        height={mobile.height}
+        className={className}
+      />
+    ) : (
+      img
+    );
+  }
   return (
     <picture>
       <source

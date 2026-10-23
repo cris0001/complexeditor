@@ -108,6 +108,10 @@ export interface RenderContext {
   depth: number;
   /** Parent of the block being rendered (null at the top level). */
   parent: Block | null;
+  /** Editor only: adds attributes (selection hooks, outline data) to each block's root. */
+  decorateRoot?: (block: Block, def: BlockDefinition, root: RootAttributes, depth: number) => RootAttributes;
+  /** Editor only: the device being previewed (art direction cannot use container queries). */
+  previewDevice?: 'mobile' | 'tablet' | 'desktop';
 }
 
 export interface BlockRenderProps<P = Record<string, unknown>, S extends string = string> {
@@ -197,6 +201,8 @@ export interface BlockDefinition<
   hidden?: boolean;
   /** Search keywords for the picker and slash menu. */
   keywords?: readonly string[];
+  /** Short description of the current settings for the editor label (e.g. "33/67"). */
+  summary?: (props: TProps) => string | undefined;
 }
 
 /**

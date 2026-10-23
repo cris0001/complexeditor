@@ -80,7 +80,10 @@ export function updateBlock(
 }
 
 /** Gives the block and all its descendants fresh ids (for copies, templates and new blocks). */
-export function withNewIds(block: Omit<Block, 'id'> & { id?: string }): Block {
+/** A block whose ids (at any depth) may be missing or placeholders. */
+export type BlockTemplate = Omit<Block, 'id' | 'children'> & { id?: string; children?: BlockTemplate[] };
+
+export function withNewIds(block: BlockTemplate): Block {
   return {
     ...block,
     id: createId(),
@@ -92,7 +95,7 @@ export function withNewIds(block: Omit<Block, 'id'> & { id?: string }): Block {
 export function createBlock(registry: Registry, type: string): Block {
   const def = registry.get(type);
   if (!def) throw new Error(`Unknown block type "${type}"`);
-  const template = def.create?.() ?? {
+  const template: BlockTemplate = def.create?.() ?? {
     type,
     props: structuredClone(def.defaultProps),
     ...(def.content ? { content: [] } : {}),

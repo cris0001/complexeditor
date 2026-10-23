@@ -123,7 +123,10 @@ function fromPMMark(mark: PMMark): Mark | undefined {
   }
 }
 
-/** Our inline content → ProseMirror document with a single paragraph. `\n` becomes a hard break. */
+/**
+ * Our inline content → ProseMirror document. The editor's top node holds inline content directly
+ * (no paragraph), so the editable element can sit inside the block's own markup. `\n` = hard break.
+ */
 export function toProseMirror(content: InlineContent | undefined): PMNode {
   const nodes: PMNode[] = [];
   for (const node of normalizeInline(content)) {
@@ -133,22 +136,29 @@ export function toProseMirror(content: InlineContent | undefined): PMNode {
       if (part) nodes.push({ type: 'text', text: part, ...(marks ? { marks } : {}) });
     });
   }
-  return { type: 'doc', content: [{ type: 'paragraph', ...(nodes.length ? { content: nodes } : {}) }] };
+  return { type: 'doc', ...(nodes.length ? { content: nodes } : {}) };
 }
 
-/** ProseMirror document → our inline content (canonical). Multiple paragraphs are joined with `\n`. */
-export function fromProseMirror(doc: PMNode): InlineContent {
-  const runs: TextNode[] = [];
-  (doc.content ?? []).forEach((paragraph, p) => {
-    if (p > 0) runs.push({ text: '\n', marks: runs[runs.length - 1]?.marks });
-    for (const node of paragraph.content ?? []) {
-      const marks = node.marks?.map(fromPMMark).filter((m): m is Mark => Boolean(m));
-      if (node.type === 'text' && node.text) runs.push({ text: node.text, marks });
-      // A hard break keeps the formatting of the text around it, so it merges back into the same run.
-      else if (node.type === 'hardBreak')
-        runs.push({ text: '\n', marks: marks?.length ? marks : runs[runs.length - 1]?.marks });
+function collectInline(nodes: readonly PMNode[], runs: TextNode[]): void {
+  nodes.forEach((node) => {
+    const marks = node.marks?.map(fromPMMark).filter((m): m is Mark => Boolean(m));
+    if (node.type === 'text' && node.text) runs.push({ text: node.text, marks });
+    // A hard break keeps the formatting of the text around it, so it merges back into the same run.
+    else if (node.type === 'hardBreak')
+      runs.push({ text: '\n', marks: marks?.length ? marks : runs[runs.length - 1]?.marks });
+    else if (node.content) {
+      // Block nodes (e.g. paragraphs from other documents) are joined with line breaks.
+      if (runs.length && !runs[runs.length - 1]!.text.endsWith('\n'))
+        runs.push({ text: '\n', marks: runs[runs.length - 1]?.marks });
+      collectInline(node.content, runs);
     }
   });
+}
+
+/** ProseMirror document → our inline content (canonical). Nested block nodes are joined with `\n`. */
+export function fromProseMirror(doc: PMNode): InlineContent {
+  const runs: TextNode[] = [];
+  collectInline(doc.content ?? [], runs);
   return normalizeInline(runs);
 }
 

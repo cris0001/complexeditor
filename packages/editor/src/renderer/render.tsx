@@ -63,11 +63,12 @@ export function rootAttributes(
   const own = def.attributes?.(props, ctx, block);
   const vars = { ...style.vars, ...own?.vars };
   const modifiers = def.modifiers?.(props) ?? [];
-  return {
+  const root: RootAttributes = {
     id: block.style?.anchor,
     className: slot('root', ['ce-block', ...style.classes, ...(own?.classes ?? [])], modifiers),
     style: Object.keys(vars).length ? vars : undefined,
   };
+  return ctx.decorateRoot ? ctx.decorateRoot(block, def, root, ctx.depth) : root;
 }
 
 function UnknownBlock({ block, ctx }: { block: Block; ctx: RenderContext }) {
@@ -96,7 +97,11 @@ export function renderBlock(block: Block, ctx: RenderContext): ReactNode {
     root: rootAttributes(def, block, props, ctx, slotFor),
     slot: (name, ...modifiers) => slotFor(name, [], modifiers),
     content: def.content ? ctx.renderInline(block) : null,
-    children: block.children?.length ? childCtx.renderBlocks(block.children, block) : null,
+    // The editor also renders empty containers' children (a drop zone).
+    children:
+      block.children?.length || (ctx.mode === 'editor' && def.container)
+        ? childCtx.renderBlocks(block.children ?? [], block)
+        : null,
     text: (prop) => ctx.renderText(block, prop),
     ctx,
   };
