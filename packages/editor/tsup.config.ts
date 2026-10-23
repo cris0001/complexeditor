@@ -8,7 +8,8 @@ const shared: Options = {
   treeshake: false,
   splitting: true,
   target: 'es2022',
-  external: ['react', 'react-dom', 'tailwindcss'],
+  // `complexeditor/*` self-imports cross the server/client boundary and stay separate modules.
+  external: ['react', 'react-dom', 'tailwindcss', /^complexeditor\//],
 };
 
 export default defineConfig([
@@ -23,10 +24,13 @@ export default defineConfig([
       'tailwind/server': 'src/tailwind/server.ts',
     },
   },
-  // Client-only entries.
+  // Client-only entries. Interactive renderer islands load their behavior lazily (dynamic import chunks).
   {
     ...shared,
-    entry: { 'editor/index': 'src/editor/index.ts' },
+    entry: {
+      'editor/index': 'src/editor/index.ts',
+      'renderer/client': 'src/renderer/client/index.ts',
+    },
     banner: { js: "'use client';" },
   },
 ]);

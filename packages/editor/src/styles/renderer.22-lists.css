@@ -1,0 +1,130 @@
+@layer ce.blocks {
+  /* List */
+  .ce-list__items {
+    margin: 0;
+    padding-inline-start: 1.4em;
+    column-gap: var(--ce-space-l);
+  }
+  .ce-list__items--nested {
+    margin-block-start: var(--ce-list-spacing, 0.35em);
+  }
+  .ce-list__item {
+    break-inside: avoid;
+  }
+  .ce-list__item + .ce-list__item {
+    margin-block-start: var(--ce-list-spacing, 0.35em);
+  }
+  .ce-list__item::marker {
+    color: var(--ce-list-marker-color, var(--ce-color-primary));
+  }
+  .ce-list--number .ce-list__item::marker {
+    font-weight: 600;
+  }
+  :is(.ce-list--check, .ce-list--arrow, .ce-list--icon) .ce-list__items {
+    list-style: none;
+    padding-inline-start: 0;
+  }
+  :is(.ce-list--check, .ce-list--arrow, .ce-list--icon) .ce-list__items--nested {
+    padding-inline-start: 1.75rem;
+  }
+  :is(.ce-list--check, .ce-list--arrow, .ce-list--icon) .ce-list__item {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    column-gap: 0.55rem;
+  }
+  :is(.ce-list--check, .ce-list--arrow, .ce-list--icon) .ce-list__item > .ce-list__items {
+    grid-column: 2;
+  }
+  .ce-list__marker {
+    margin-block-start: 0.2em;
+    color: var(--ce-list-marker-color, var(--ce-color-primary));
+  }
+  .ce-list--check .ce-list__marker {
+    color: var(--ce-color-success);
+  }
+
+  /* Table */
+  .ce-table__scroller {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .ce-table__scroller:focus-visible {
+    outline: 2px solid var(--ce-color-primary);
+    outline-offset: 2px;
+  }
+  .ce-table__table {
+    inline-size: 100%;
+    border-collapse: collapse;
+    font-size: var(--ce-text-s);
+  }
+  .ce-table__caption {
+    caption-side: bottom;
+    padding-block-start: 0.5rem;
+    color: var(--ce-color-muted);
+    text-align: start;
+  }
+  .ce-table__cell,
+  .ce-table__headerCell {
+    padding: 0.6rem 0.8rem;
+    border-block-end: 1px solid var(--ce-color-border);
+    text-align: start;
+    vertical-align: top;
+  }
+  .ce-table__headerCell {
+    font-weight: 600;
+    background: var(--ce-table-header-bg, var(--ce-color-surface));
+  }
+  thead .ce-table__headerCell {
+    border-block-end-width: 2px;
+  }
+  .ce-table--striped tbody tr:nth-child(even) {
+    background: var(--ce-table-stripe, color-mix(in srgb, var(--ce-color-surface) 70%, transparent));
+  }
+  :is(.ce-table__cell, .ce-table__headerCell).ce-table__cell--align-center,
+  .ce-table__headerCell--align-center {
+    text-align: center;
+  }
+  :is(.ce-table__cell, .ce-table__headerCell).ce-table__cell--align-right,
+  .ce-table__headerCell--align-right {
+    text-align: end;
+  }
+  .ce-table__cell--align-left,
+  .ce-table__headerCell--align-left {
+    text-align: start;
+  }
+}
+
+/* Table as cards on small documents (container query, so the editor preview matches). */
+@container ce-doc (max-width: 639.98px) {
+  @layer ce.blocks {
+    .ce-table--mobile-cards thead {
+      position: absolute;
+      inline-size: 1px;
+      block-size: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+    }
+    .ce-table--mobile-cards :is(table, tbody, tr, td, th) {
+      display: block;
+    }
+    .ce-table--mobile-cards tbody tr {
+      margin-block-end: var(--ce-space-xs);
+      border: 1px solid var(--ce-color-border);
+      border-radius: var(--ce-radius-m);
+      overflow: hidden;
+    }
+    .ce-table--mobile-cards tbody :is(td, th)[data-label] {
+      display: grid;
+      grid-template-columns: minmax(6rem, 40%) 1fr;
+      gap: 0.75rem;
+    }
+    .ce-table--mobile-cards tbody :is(td, th)[data-label]::before {
+      content: attr(data-label);
+      font-weight: 600;
+      color: var(--ce-color-muted);
+    }
+    .ce-table--mobile-cards tbody tr :is(td, th):last-child {
+      border-block-end: 0;
+    }
+  }
+}

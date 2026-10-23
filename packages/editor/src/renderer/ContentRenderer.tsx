@@ -2,6 +2,8 @@ import { migrate, needsMigration } from '../schema/migrate';
 import type { ContentDocument } from '../schema/types';
 import { defaultRegistry } from '../blocks/index';
 import { cx } from '../core/classes';
+import { walkBlocks } from '../schema/text';
+import { island } from './island';
 import { createRenderContext, type RenderOptions } from './render';
 
 export interface GeneratedCss {
@@ -30,8 +32,13 @@ export function ContentRenderer({
 }: ContentRendererProps) {
   const doc = needsMigration(document) ? migrate(document) : document;
   const ctx = createRenderContext(doc, { registry, ...options });
+  let animated = false;
+  walkBlocks(doc.blocks, (block) => {
+    if (block.style?.animation) animated = true;
+  });
   return (
     <div className={cx('ce-document', className)} lang={options.locale}>
+      {animated && island(ctx, 'animations')}
       {ctx.renderBlocks(doc.blocks, null)}
       {generatedCss?.css && (
         <style href={`ce-${generatedCss.hash}`} precedence="ce">

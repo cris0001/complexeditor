@@ -1,0 +1,129 @@
+@layer ce.blocks {
+  /* Slider controls (shown only in slider layout once the island is active). */
+  .ce-gallery--peek {
+    --ce-gallery-peek: 12%;
+  }
+  .ce-gallery__track.ce-is-dragging {
+    scroll-snap-type: none;
+    cursor: grabbing;
+    user-select: none;
+  }
+  .ce-gallery__track:focus-visible {
+    outline: 2px solid var(--ce-color-primary);
+    outline-offset: 3px;
+  }
+  .ce-gallery__controls {
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-block-start: 0.75rem;
+  }
+  .ce-gallery__arrow {
+    display: grid;
+    place-items: center;
+    inline-size: 2.5rem;
+    block-size: 2.5rem;
+    border: 1px solid var(--ce-color-border);
+    border-radius: 999px;
+    background: var(--ce-color-background);
+    color: var(--ce-color-text);
+    cursor: pointer;
+  }
+  .ce-gallery__arrow:disabled {
+    opacity: 0.4;
+    cursor: default;
+  }
+  .ce-gallery__arrow:focus-visible,
+  .ce-gallery__dot:focus-visible,
+  .ce-gallery__thumb:focus-visible {
+    outline: 2px solid var(--ce-color-primary);
+    outline-offset: 2px;
+  }
+  .ce-gallery__arrow--prev,
+  .ce-gallery__arrow--next {
+    position: absolute;
+    inset-block-start: calc(50% - 1.25rem - 1.5rem);
+    z-index: 1;
+    box-shadow: var(--ce-shadow-m);
+  }
+  .ce-gallery__arrow--prev {
+    inset-inline-start: 0.5rem;
+  }
+  .ce-gallery__arrow--next {
+    inset-inline-end: 0.5rem;
+  }
+  .ce-gallery__arrow--toggle[data-state='paused'] svg {
+    display: none;
+  }
+  .ce-gallery__arrow--toggle[data-state='paused']::before {
+    content: '▶';
+    font-size: 0.8rem;
+  }
+  .ce-gallery__dots {
+    display: flex;
+    gap: 0.4rem;
+  }
+  .ce-gallery__dot {
+    inline-size: 0.65rem;
+    block-size: 0.65rem;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: var(--ce-color-border);
+    cursor: pointer;
+  }
+  .ce-gallery__dot[aria-current='true'] {
+    background: var(--ce-color-primary);
+    inline-size: 1.4rem;
+  }
+  .ce-gallery__thumbs {
+    display: flex;
+    gap: 0.4rem;
+    overflow-x: auto;
+    max-inline-size: 100%;
+  }
+  .ce-gallery__thumb {
+    flex: none;
+    padding: 0;
+    border: 2px solid transparent;
+    border-radius: var(--ce-radius-s);
+    background: none;
+    cursor: pointer;
+    opacity: 0.6;
+  }
+  .ce-gallery__thumb[aria-current='true'] {
+    border-color: var(--ce-color-primary);
+    opacity: 1;
+  }
+  .ce-gallery__thumb .ce-gallery__thumb-img {
+    inline-size: 4.5rem;
+    block-size: 3rem;
+    aspect-ratio: auto;
+    object-fit: cover;
+    border-radius: calc(var(--ce-radius-s) - 2px);
+  }
+}
+
+/* Fade effect: slides stacked in one cell, the island toggles the active one. Must beat the
+   responsive slider layout rules, hence ce.style and the extra .ce-gallery class. */
+@layer ce.style {
+  .ce-gallery.ce-gallery--fading > .ce-gallery__track {
+    grid-auto-columns: 100%;
+    overflow: hidden;
+    scroll-snap-type: none;
+  }
+  .ce-gallery.ce-gallery--fading > .ce-gallery__track > .ce-gallery__item {
+    grid-area: 1 / 1;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+  .ce-gallery.ce-gallery--fading > .ce-gallery__track > .ce-gallery__item.ce-is-active {
+    opacity: 1;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ce-gallery.ce-gallery--fading > .ce-gallery__track > .ce-gallery__item {
+      transition: none;
+    }
+  }
+}

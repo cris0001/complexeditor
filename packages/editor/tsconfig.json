@@ -2,7 +2,10 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "rootDir": ".",
-    "types": ["vitest/globals"]
+    "types": ["vitest/globals"],
+    "paths": {
+      "complexeditor/renderer/client": ["./src/renderer/client/index.ts"]
+    }
   },
   "include": ["src", "test", "tsup.config.ts", "vitest.config.ts"]
 }

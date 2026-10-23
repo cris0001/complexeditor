@@ -4,6 +4,7 @@ import type { Block, ContentDocument, LocalizedString } from '../schema/types';
 import type { Theme } from './theme';
 import type { ResponsiveRule } from './responsive-css';
 import type { StyleAttributes } from './style';
+import type { RendererMessageKey } from '../i18n/renderer-messages';
 
 /** Palette groups in the editor's block picker. */
 export type BlockCategory = 'text' | 'layout' | 'media' | 'embed' | 'interactive' | 'global';
@@ -37,6 +38,8 @@ export interface ImageComponentProps {
 export interface LinkComponentProps {
   href: string;
   className?: string;
+  /** Only `--ce-*` custom properties. */
+  style?: Record<`--${string}`, string>;
   target?: string;
   rel?: string;
   children?: ReactNode;
@@ -51,6 +54,15 @@ export interface RendererComponents {
   /** Link element used by inline links and buttons (e.g. `next/link`). */
   Link?: ComponentType<LinkComponentProps>;
 }
+
+/** A highlighted token run. `classes` are highlighter class names (e.g. `hljs-keyword`). */
+export interface CodeToken {
+  text: string;
+  classes: string[];
+}
+
+/** Returns token runs for `code`, or `null` when the language is unknown (rendered as plain text). */
+export type CodeHighlighter = (code: string, language: string | undefined) => CodeToken[] | null;
 
 /** Extra classes per slot. */
 export type SlotClasses = Record<string, string | undefined>;
@@ -82,6 +94,10 @@ export interface RenderContext {
   locale?: string;
   /** Development mode: show fallbacks for unknown blocks. */
   dev: boolean;
+  /** Translated renderer string (`{name}` placeholders are replaced from `values`). */
+  t: (key: RendererMessageKey, values?: Record<string, string | number>) => string;
+  /** Syntax highlighter for code blocks. */
+  highlight: CodeHighlighter;
   /** Renders child blocks (the editor wraps them with selection and drop zones). */
   renderBlocks: (blocks: readonly Block[], parent: Block | null) => ReactNode;
   /** Renders inline content (the editor substitutes an editable field). */
@@ -90,6 +106,8 @@ export interface RenderContext {
   renderText: (block: Block, prop: string) => ReactNode;
   /** Depth of the block being rendered (0 = top level). */
   depth: number;
+  /** Parent of the block being rendered (null at the top level). */
+  parent: Block | null;
 }
 
 export interface BlockRenderProps<P = Record<string, unknown>, S extends string = string> {

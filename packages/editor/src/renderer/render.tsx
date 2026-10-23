@@ -17,6 +17,9 @@ import type {
 } from '../core/types';
 import type { Theme } from '../core/theme';
 import { renderInlineContent } from './inline';
+import { defaultHighlighter } from '../core/highlight';
+import { format, getRendererMessages, type RendererMessages } from '../i18n/renderer-messages';
+import type { CodeHighlighter } from '../core/types';
 
 const DefaultImage = ({ draggable, ...props }: ImageComponentProps) => (
   <img {...props} alt={props.alt} draggable={draggable} decoding="async" />
@@ -31,6 +34,10 @@ export interface RenderOptions {
   mergeClasses?: MergeClasses;
   components?: RendererComponents;
   locale?: string;
+  /** Override renderer strings (buttons, labels) for the document's locale. */
+  messages?: Partial<RendererMessages>;
+  /** Replace the default (highlight.js via lowlight) code highlighter. */
+  highlight?: CodeHighlighter;
   /** Show visible fallbacks for unknown blocks. Defaults to `process.env.NODE_ENV !== 'production'`. */
   dev?: boolean;
 }
@@ -81,7 +88,8 @@ export function renderBlock(block: Block, ctx: RenderContext): ReactNode {
   }
   const props = { ...def.defaultProps, ...block.props };
   const slotFor = createSlotResolver(ctx, def, block, props);
-  const childCtx: RenderContext = { ...ctx, depth: ctx.depth + 1 };
+  // The block sees its own position (`depth`, `parent`); its children get the next level.
+  const childCtx: RenderContext = { ...ctx, depth: ctx.depth + 1, parent: block };
   const renderProps: BlockRenderProps = {
     block,
     props,
@@ -90,7 +98,7 @@ export function renderBlock(block: Block, ctx: RenderContext): ReactNode {
     content: def.content ? ctx.renderInline(block) : null,
     children: block.children?.length ? childCtx.renderBlocks(block.children, block) : null,
     text: (prop) => ctx.renderText(block, prop),
-    ctx: childCtx,
+    ctx,
   };
   const Render = def.render as ComponentType<BlockRenderProps>;
   const Override = ctx.components.blocks?.[block.type];
@@ -102,6 +110,7 @@ export function createRenderContext(document: ContentDocument, options: RenderOp
   const anchors = new Map(
     extractHeadings(document, { maxLevel: 6 }).map((heading) => [heading.blockId, heading.anchor]),
   );
+  const messages = getRendererMessages(options.locale, options.messages);
   const ctx: RenderContext = {
     registry: options.registry,
     theme: options.theme,
@@ -116,7 +125,10 @@ export function createRenderContext(document: ContentDocument, options: RenderOp
     mode: 'render',
     locale: options.locale,
     dev: options.dev ?? isDev(),
+    t: (key, values) => format(messages[key], values),
+    highlight: options.highlight ?? defaultHighlighter,
     depth: 0,
+    parent: null,
     renderBlocks(blocks, _parent) {
       return blocks.map((block) => renderBlock(block, this));
     },
