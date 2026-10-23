@@ -5,7 +5,10 @@ describe('defineClassNames', () => {
   it('returns the config unchanged and type-checks slots and props', () => {
     const config = defineClassNames(builtinBlocks, {
       '*': { slots: { root: 'block' } },
-      heading: { slots: ({ props }) => ({ text: props.level === 2 ? 'h2' : 'hx' }), variants: { fancy: { eyebrow: 'x' } } },
+      heading: {
+        slots: ({ props }) => ({ text: props.level === 2 ? 'h2' : 'hx' }),
+        variants: { fancy: { eyebrow: 'x' } },
+      },
       gallery: { slots: { item: 'rounded', img: 'object-cover' } },
     });
     expect(Object.keys(config)).toEqual(['*', 'heading', 'gallery']);
