@@ -1,0 +1,6 @@
+/*
+ * complexeditor renderer styles.
+ * Everything lives in cascade layers so that unlayered project styles and
+ * Tailwind utilities always win without !important.
+ */
+@layer ce.base, ce.blocks, ce.variants;

@@ -1,0 +1,2 @@
+/* complexeditor editor UI styles. Scoped to .ce-editor so nothing leaks into the page. */
+@layer ce.editor;

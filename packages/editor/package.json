@@ -1,0 +1,88 @@
+{
+  "name": "complexeditor",
+  "version": "0.0.0",
+  "description": "Block-based content editor for React / Next.js with a JSON document format and a server-rendered renderer.",
+  "license": "MIT",
+  "type": "module",
+  "sideEffects": [
+    "**/*.css"
+  ],
+  "keywords": [
+    "editor",
+    "block-editor",
+    "react",
+    "nextjs",
+    "cms",
+    "blog",
+    "tiptap",
+    "page-builder",
+    "server-components"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cris0001/complexeditor.git",
+    "directory": "packages/editor"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "exports": {
+    "./schema": {
+      "types": "./dist/schema/index.d.ts",
+      "import": "./dist/schema/index.js"
+    },
+    "./renderer": {
+      "types": "./dist/renderer/index.d.ts",
+      "import": "./dist/renderer/index.js"
+    },
+    "./editor": {
+      "types": "./dist/editor/index.d.ts",
+      "import": "./dist/editor/index.js"
+    },
+    "./i18n": {
+      "types": "./dist/i18n/index.d.ts",
+      "import": "./dist/i18n/index.js"
+    },
+    "./tailwind": {
+      "types": "./dist/tailwind/index.d.ts",
+      "import": "./dist/tailwind/index.js"
+    },
+    "./tailwind/server": {
+      "types": "./dist/tailwind/server.d.ts",
+      "import": "./dist/tailwind/server.js"
+    },
+    "./styles.css": "./dist/styles.css",
+    "./editor.css": "./dist/editor.css",
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "build": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\" && tsup && node scripts/build-css.mjs",
+    "dev": "tsup --watch",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "peerDependencies": {
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "tailwindcss": ">=3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "tailwindcss": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@testing-library/react": "^16.3.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "jsdom": "^26.1.0",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "tsup": "^8.5.0",
+    "typescript": "^5.9.0",
+    "vitest": "^3.2.0"
+  }
+}

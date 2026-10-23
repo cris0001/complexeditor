@@ -1,0 +1,6 @@
+dist
+.next
+coverage
+pnpm-lock.yaml
+prompt-edytor.md
+CHANGELOG.md
